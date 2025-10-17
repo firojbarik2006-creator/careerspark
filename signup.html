@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerSpark Sign Up</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            /* Light background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            /* Added padding to prevent the container from touching screen edges */
+            box-sizing: border-box;
+            /* Ensure padding is included in the total width/height */
+        }
+        
+        .signup-container {
+            background: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            /* Removed fixed margin/padding conflicts for better centering */
+        }
+        
+        h1 {
+            text-align: center;
+            color: #002D62;
+            /* Dark blue, matching a professional look */
+            margin-bottom: 25px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="file"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            /* Essential for responsiveness */
+            font-size: 1em;
+            /* Ensure font size is readable on all devices */
+        }
+        /* Hide conditional fields initially */
+        
+        .hidden {
+            display: none;
+        }
+        
+        button[type="submit"] {
+            background-color: #1815d5;
+            /* Red, similar to your cap icon */
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.1em;
+            /* Slightly larger button text for easy tapping */
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        button[type="submit"]:hover {
+            background-color: #343fa4;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            font-size: 14px;
+            line-height: 1.4;
+            /* Improve readability of the terms text */
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            margin-top: 2px;
+            /* Ensure the checkbox is large enough to tap easily */
+            transform: scale(1.2);
+        }
+        /* ------------------------------------------- */
+        /* RESPONSIVENESS (Media Queries)    */
+        /* ------------------------------------------- */
+        /* Adjustments for Extra Small Devices (e.g., older or very small phones, width < 480px) */
+        
+        @media (max-width: 480px) {
+            body {
+                /* Reduce body padding on the smallest screens */
+                padding: 10px;
+            }
+            .signup-container {
+                /* Reduce padding inside the form container */
+                padding: 20px;
+                /* Remove the box-shadow to make it look cleaner on small screens */
+                box-shadow: none;
+                border-radius: 0;
+                /* Optional: Remove border-radius on full-width mobile view */
+            }
+            h1 {
+                /* Reduce margin below the main heading */
+                margin-bottom: 15px;
+                font-size: 1.5em;
+                /* Ensure title isn't too large */
+            }
+            input[type="text"],
+            input[type="email"],
+            input[type="password"],
+            input[type="file"],
+            select {
+                /* Slightly reduce input padding */
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="signup-container">
+        <h1>Establish Your Verified CareerSpark Profile</h1>
+        <form id="signupForm" action="/register" method="POST" enctype="multipart/form-data">
+
+            <div class="form-group">
+                <label for="userRole">I am a:</label>
+                <select id="userRole" required>
+                    <option value="">-- Select Role --</option>
+                    <option value="student">Seeking Opportunities</option>
+                    <option value="employer">Hiring Authority </option>
+                    </select>
+            </div>
+
+            <div class="form-group">
+                <label for="email"> Secure Email Address</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Must contain at least one number, one uppercase and lowercase letter, and be at least 8 characters long.">
+            </div>
+            <div class="form-group">
+                <label for="confirm-password">Confirm Password</label>
+                <input type="password" id="confirm-password" required>
+            </div>
+
+            <div id="studentFields" class="conditional-fields hidden">
+                <h2>Student Details</h2>
+                <div class="form-group">
+                    <label for="studentName">Full Name</label>
+                    <input type="text" id="studentName" name="studentName">
+                </div>
+                <div class="form-group">
+                    <label for="studentId">Upload Student ID Card (JPG/PNG/PDF)</label>
+                    <input type="file" id="studentId" name="studentId" accept=".jpg,.jpeg,.png,.pdf">
+                    <small>Required for account verification.</small>
+                </div>
+            </div>
+
+            <div id="employerFields" class="conditional-fields hidden">
+                <h2>Employer Details</h2>
+                <div class="form-group">
+                    <label for="companyName">Company Name</label>
+                    <input type="text" id="companyName" name="companyName">
+                </div>
+                <div class="form-group">
+                    <label for="contactName">Primary Contact Name</label>
+                    <input type="text" id="contactName" name="contactName">
+                </div>
+            </div>
+
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="terms" required>
+                <label for="terms">I agree to the Terms & Conditions and understand my data will be used for security authentication.</label>
+            </div>
+
+            <button type="submit">Sign Up</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userRole = document.getElementById('userRole');
+            const studentFields = document.getElementById('studentFields');
+            const employerFields = document.getElementById('employerFields');
+            const signupForm = document.getElementById('signupForm');
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirm-password');
+
+            // 1. Conditional Field Display
+            userRole.addEventListener('change', (event) => {
+                const role = event.target.value;
+
+                // Hide all conditional fields first
+                studentFields.classList.add('hidden');
+                employerFields.classList.add('hidden');
+
+                // Remove 'required' attribute from all inputs in the conditional groups
+                studentFields.querySelectorAll('input').forEach(input => input.removeAttribute('required'));
+                employerFields.querySelectorAll('input').forEach(input => input.removeAttribute('required'));
+
+                // Show and set 'required' for the selected role
+                if (role === 'student') {
+                    studentFields.classList.remove('hidden');
+                    // Set required fields for student
+                    document.getElementById('studentName').setAttribute('required', 'required');
+                    document.getElementById('studentId').setAttribute('required', 'required');
+                } else if (role === 'employer') {
+                    employerFields.classList.remove('hidden');
+                    // Set required fields for employer
+                    document.getElementById('companyName').setAttribute('required', 'required');
+                    document.getElementById('contactName').setAttribute('required', 'required');
+                }
+            });
+
+            // 2. Password Matching Validation
+            signupForm.addEventListener('submit', (event) => {
+                if (passwordInput.value !== confirmPasswordInput.value) {
+                    alert('Error: Passwords do not match!');
+                    confirmPasswordInput.focus();
+                    event.preventDefault(); // Stop form submission
+                    return;
+                }
+
+                // 3. Basic Front-End Security Check for ID Upload
+                const role = userRole.value;
+                if (role === 'student') {
+                    const studentIdFile = document.getElementById('studentId').value;
+                    if (!studentIdFile) {
+                        alert('Error: Student ID Card upload is required for verification.');
+                        event.preventDefault();
+                        return;
+                    }
+                }
+
+                // If successful (on the front-end), the form will now submit to your back-end (e.g., /register)
+                // Your back-end must handle the final security, validation, hashing, and file storage.
+                // For demonstration, let's prevent actual submission here:
+                // event.preventDefault(); 
+                // alert('Sign Up Successful (Validation Passed)! Submitting data to server...');
+            });
+        });
+
+
+
+        // ---------------------------------------------------------------------
+        // 1. FIREBASE CONFIGURATION (CRITICAL: REPLACE PLACEHOLDERS BELOW)
+        // ---------------------------------------------------------------------
+        const FIREBASE_CONFIG_PLACEHOLDER = {
+            apiKey: "YOUR_API_KEY_HERE",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        const FIREBASE_CONFIG = FIREBASE_CONFIG_PLACEHOLDER;
+        const APP_ID = "local-platform-flow"; // Consistent App ID for pathing
+
+        // ---------------------------------------------------------------------
+        // 2. FIREBASE IMPORTS
+        // ---------------------------------------------------------------------
+        import {
+            initializeApp
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import {
+            getAuth,
+            createUserWithEmailAndPassword
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import {
+            getFirestore,
+            doc,
+            setDoc
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ---------------------------------------------------------------------
+        // 3. INITIALIZATION & HELPERS
+        // ---------------------------------------------------------------------
+        const app = initializeApp(FIREBASE_CONFIG);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const userRole = document.getElementById('userRole');
+        const studentFields = document.getElementById('studentFields');
+        const employerFields = document.getElementById('employerFields');
+        const signupForm = document.getElementById('signupForm');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+        const signupButton = document.getElementById('signupButton');
+        const feedbackMessage = document.getElementById('feedback-message');
+
+        const showFeedback = (message, type) => {
+            feedbackMessage.textContent = message;
+            feedbackMessage.className = ''; // Clear existing classes
+            feedbackMessage.classList.add(type);
+            feedbackMessage.style.display = 'block';
+        };
+
+        const setButtonLoading = (isLoading) => {
+            signupButton.disabled = isLoading;
+            signupButton.textContent = isLoading ? 'Creating Account...' : 'Sign Up';
+        };
+
+        // Define Firestore path logic (must match login.html)
+        const getProfilePath = (role, uid) => {
+            const collectionName = role === 'student' ? 'student_profiles' : 'employer_profiles';
+            return `artifacts/${APP_ID}/users/${uid}/${collectionName}/${uid}`;
+        };
+
+        const getDashboardUrl = (role) => {
+            return role === 'student' ? 'studentdashboard.html' : 'employer.html';
+        };
+
+        // ---------------------------------------------------------------------
+        // 4. CONDITIONAL FIELD DISPLAY LOGIC (User's Original Logic)
+        // ---------------------------------------------------------------------
+        userRole.addEventListener('change', (event) => {
+            const role = event.target.value;
+
+            studentFields.classList.add('hidden');
+            employerFields.classList.add('hidden');
+
+            studentFields.querySelectorAll('input').forEach(input => input.removeAttribute('required'));
+            employerFields.querySelectorAll('input').forEach(input => input.removeAttribute('required'));
+
+            if (role === 'student') {
+                studentFields.classList.remove('hidden');
+                document.getElementById('studentName').setAttribute('required', 'required');
+                document.getElementById('studentId').setAttribute('required', 'required');
+            } else if (role === 'employer') {
+                employerFields.classList.remove('hidden');
+                document.getElementById('companyName').setAttribute('required', 'required');
+                document.getElementById('contactName').setAttribute('required', 'required');
+            }
+        });
+
+        // ---------------------------------------------------------------------
+        // 5. SIGNUP SUBMISSION HANDLER (Integrated with Firebase)
+        // ---------------------------------------------------------------------
+        signupForm.addEventListener('submit', async(e) => {
+            e.preventDefault();
+            feedbackMessage.style.display = 'none';
+
+            const email = signupForm.email.value;
+            const password = passwordInput.value;
+            const role = userRole.value;
+
+            // Password Matching Validation (User's original logic, adapted)
+            if (password !== confirmPasswordInput.value) {
+                showFeedback('Error: Passwords do not match!', 'error');
+                confirmPasswordInput.focus();
+                return;
+            }
+
+            // Role Selection Validation
+            if (!role) {
+                showFeedback('Error: Please select a role.', 'error');
+                return;
+            }
+
+            setButtonLoading(true);
+
+            try {
+                // 5a. Create user in Firebase Authentication
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const uid = userCredential.user.uid;
+
+                let profileData = {
+                    userId: uid,
+                    email: email,
+                    role: role,
+                    createdAt: new Date().toISOString()
+                };
+
+                // 5b. Gather role-specific data for Firestore
+                if (role === 'student') {
+                    profileData.fullName = document.getElementById('studentName').value;
+                    // File upload is client-side only here, real world needs Storage, but we save the name
+                    profileData.idCardStatus = 'Pending Upload Verification';
+                } else if (role === 'employer') {
+                    profileData.companyName = document.getElementById('companyName').value;
+                    profileData.contactName = document.getElementById('contactName').value;
+                }
+
+                // 5c. Save profile document to Firestore
+                const profileRef = doc(db, getProfilePath(role, uid));
+                await setDoc(profileRef, profileData);
+
+                // 5d. Success and Redirection
+                showFeedback('Account created successfully! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = getDashboardUrl(role);
+                }, 1000);
+
+            } catch (error) {
+                // Log and display the error message
+                console.error("Signup error:", error);
+                showFeedback(`Authentication Error: ${error.message}`, 'error');
+            } finally {
+                setButtonLoading(false);
+            }
+        });
+
+        // Ensure initial state is correct by manually triggering change if a role is pre-selected (though yours starts empty)
+        userRole.dispatchEvent(new Event('change'));
+    </script>
+
+
+</body>
+
+</html>

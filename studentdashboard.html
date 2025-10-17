@@ -1,0 +1,1270 @@
+<!-- Chosen Palette: Warm Neutrals (bg-gray-50) with Primary Accent Sky-600 -->
+<!-- Performance, Accessibility (A11Y) & Responsiveness Update -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>careerspark - BPUT student dashboard</title>
+    <meta name="description" content="AI Career Intelligence Dashboard for BPUT students: track readiness, analyze skill gaps, and get personalized job recommendations.">
+
+    <!-- PERFORMANCE FIX: Added preconnect hints for faster DNS/TLS handshake -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- PERFORMANCE FIX: Load font CSS non-blocking using media="print" trick -->
+    <!-- The 'display=swap' parameter is already used to prevent FOIT (Flash of Invisible Text) and mitigate CLS from font-swap. -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+
+    <style>
+        /* Only load the font-family, the link tag above handles the external request */
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-button.active {
+            background-color: #f0f9ff;
+            color: #075985;
+        }
+        
+        .active-tab {
+            display: block;
+        }
+        /* CLS FIX: Fixed height for chart containers prevents layout shifts when charts are rendered late. */
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+        }
+        
+        .chart-container canvas {
+            height: 100% !important;
+            width: 100% !important;
+        }
+        /* Custom scrollbar for aesthetics */
+        
+         ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+         ::-webkit-scrollbar-thumb {
+            background: #38bdf8;
+            border-radius: 4px;
+        }
+        
+         ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        /* Level Up Modal Styling */
+        
+        .level-up-modal-bg {
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+        
+        .confetti {
+            animation: confetti-fall 3s ease-out forwards;
+        }
+        
+        @keyframes confetti-fall {
+            0% {
+                opacity: 0;
+                transform: translateY(-100px) rotate(0deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) rotate(720deg);
+            }
+        }
+        /* Screen Reader Only utility for labels */
+        
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800 transition-colors duration-300">
+
+    <!-- Header & Accessibility Toggles (Feature 9) -->
+    <header class="bg-white shadow-md sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-sky-600">🎓 Career Intel Hub</h1>
+            <div class="flex items-center space-x-4">
+                <button id="mode-toggle" class="p-2 rounded-full hover:bg-gray-100 transition-colors" title="Toggle Dark Mode">
+                    <span id="sun-icon">☀️</span>
+                    <span id="moon-icon" class="hidden">🌙</span>
+                </button>
+                <!-- Font size accessibility -->
+                <div class="flex items-center space-x-2">
+                    <label for="font-size" class="text-sm">A</label>
+                    <input type="range" id="font-size" min="1" max="1.5" step="0.05" value="1" class="w-20">
+                    <label for="font-size" class="text-lg font-bold">A</label>
+                </div>
+                <!-- Language Select with A11Y Label -->
+                <label for="language-select" class="sr-only">Select Language</label>
+                <select id="language-select" class="p-1 rounded-md border border-gray-300 text-sm">
+                    <option value="en">English (EN)</option>
+                    <option value="hi">Hindi (HI) - Mock</option>
+                    <option value="or">Odia (OR) - Mock</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:grid lg:grid-cols-12 lg:gap-8">
+
+        <!-- Sidebar Navigation (Full width on mobile, fixed column on lg) -->
+        <nav class="lg:col-span-3 mb-6 lg:mb-0">
+            <div class="bg-white p-4 rounded-xl shadow-lg space-y-2">
+                <h2 class="text-lg font-semibold text-gray-700 mb-4">Dashboard Menu</h2>
+                <button data-tab="overview" class="tab-button w-full text-left flex items-center p-3 rounded-lg font-medium bg-sky-50 text-sky-800 hover:bg-sky-100 transition-colors">
+                    <span class="mr-3">🚀</span> Readiness Overview
+                </button>
+                <button data-tab="profile" class="tab-button w-full text-left flex items-center p-3 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors">
+                    <span class="mr-3">👤</span> Smart Profile
+                </button>
+                <button data-tab="insights" class="tab-button w-full text-left flex items-center p-3 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors">
+                    <span class="mr-3">💡</span> AI Insights & Gaps
+                </button>
+                <button data-tab="opportunities" class="tab-button w-full text-left flex items-center p-3 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors">
+                    <span class="mr-3">💼</span> Job Matching
+                </button>
+                <!-- DEDICATED CHAT TAB -->
+                <button data-tab="community" class="tab-button w-full text-left flex items-center p-3 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors">
+                    <span class="mr-3">💬</span> Mentorship & AI Chat
+                </button>
+                <button data-tab="settings" class="tab-button w-full text-left flex items-center p-3 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors">
+                    <span class="mr-3">🔐</span> Privacy & Settings
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area (Tabs) -->
+        <main class="lg:col-span-9">
+
+            <!-- 1. Readiness Overview Tab (Landing Page - Fully Responsive) -->
+            <div id="overview" class="tab-content active-tab">
+
+                <!-- Profile and Improvement Wish Header -->
+                <div class="bg-white p-6 rounded-xl shadow-xl mb-8 flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6 border-l-8 border-sky-600">
+                    <!-- Profile Picture/Initials (Feature 1) -->
+                    <div id="profile-initials" class="w-24 h-24 bg-sky-200 rounded-full flex items-center justify-center text-4xl font-bold text-sky-800 shrink-0 shadow-lg">
+                        AS
+                    </div>
+                    <div>
+                        <!-- Personalized Greeting -->
+                        <h2 class="text-3xl font-extrabold text-gray-900" id="welcome-message">Welcome back, Anya Sharma!</h2>
+                        <p class="text-lg text-gray-700 mt-1" id="improvement-wish">
+                            <!-- Wish for Improvement (Dynamic content set in JS) -->
+                            <span class="font-semibold text-indigo-600">🎯 Your Focus:</span> Let's conquer the **Advanced ML** gap to unlock the next job level.
+                        </p>
+                        <p class="text-sm text-gray-500 mt-2">BPUT/2022/CS045 | CS & Eng. | Semester 5</p>
+                    </div>
+                </div>
+
+                <p class="text-gray-600 mb-8">This dashboard provides a holistic view of your employability, combining academic performance, skill assessment, and behavioral traits into a single **AI Readiness Index**. Use the personalized recommendations and analytics below to guide
+                    your learning path.</p>
+
+                <!-- Responsive Grid: stacks on mobile, 2 columns on medium+ screens -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- ARI Score & Breakdown (Feature 2 & 8) -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-sky-600">
+                        <div class="flex justify-between items-start">
+                            <p class="text-sm font-medium text-gray-500">AI Readiness Index (ARI)</p>
+                            <span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-semibold">Level Up!</span>
+                        </div>
+                        <div class="flex items-center mt-3">
+                            <p id="readiness-score" class="text-5xl font-extrabold text-sky-600">68</p>
+                            <span class="text-2xl text-gray-600 font-light ml-2">/ 100</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 mt-4">
+                            <div id="readiness-bar" class="bg-sky-600 h-2.5 rounded-full" style="width: 68%"></div>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">Target Score: 85+</p>
+
+                        <!-- ARI Breakdown -->
+                        <div class="mt-6 border-t pt-4 grid grid-cols-3 gap-4 text-center">
+                            <div class="p-2 bg-gray-50 rounded-lg">
+                                <p class="text-lg font-bold text-green-800" id="ari-academic">75</p>
+                                <p class="text-xs text-gray-500">Academic Score</p>
+                            </div>
+                            <div class="p-2 bg-gray-50 rounded-lg">
+                                <p class="text-lg font-bold text-indigo-600" id="ari-skill">62</p>
+                                <p class="text-xs text-gray-500">Skill Score</p>
+                            </div>
+                            <div class="p-2 bg-gray-50 rounded-lg">
+                                <p class="text-lg font-bold text-amber-800" id="ari-behavioral">78</p>
+                                <p class="text-xs text-gray-500">Behavioral Score</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actionable Readiness Insights (Level, Lack, Blocker) -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-indigo-600">
+                        <p class="text-sm font-medium text-gray-500">Actionable Readiness Insights</p>
+                        <div class="space-y-4 mt-3">
+                            <div>
+                                <h3 class="text-xl font-bold text-indigo-700 flex items-center">
+                                    <span id="current-level-icon" class="text-2xl mr-2">⭐</span> Level: <span id="current-level-name" class="ml-2">5 - Emerging Analyst</span>
+                                </h3>
+                                <p class="text-sm text-gray-500">You are ready for entry-level internships.</p>
+                            </div>
+                            <div class="border-t pt-4">
+                                <p class="text-sm font-medium text-gray-700">Top Gap (Lack)</p>
+                                <p id="top-gap" class="text-lg font-semibold text-red-600">Advanced ML/Deep Learning</p>
+                            </div>
+                            <div class="border-t pt-4">
+                                <p class="text-sm font-medium text-gray-700">Primary Blocker (Why no progress)</p>
+                                <p id="primary-blocker" class="text-lg font-semibold text-amber-800">Incomplete **Data Mastery** Module</p>
+                                <p class="text-xs text-gray-500 mt-1">Status: 40% completed. Finish it to boost your Skill Score by 10 points.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Achievements & Gamification (Feature 7) -->
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">🏆 Recent Achievements</h3>
+                        <button onclick="handleLevelUp()" class="text-sky-800 text-sm font-medium hover:underline">Test Level Up 🎉</button>
+                    </div>
+
+                    <div id="achievement-list" class="flex flex-wrap gap-3">
+                        <!-- Achievements will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Readiness Over Time Chart (Feature 8) -->
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Analytics: Readiness Over Time</h3>
+                        <label for="readiness-filter" class="sr-only">Filter Readiness Chart By</label>
+                        <select id="readiness-filter" class="p-1 border rounded-md text-sm">
+                            <option value="ari">Overall ARI</option>
+                            <option value="skill">Skill Score</option>
+                            <option value="academic">Academic Score</option>
+                        </select>
+                    </div>
+                    <!-- CLS FIX: fixed height prevents layout shift when chart renders -->
+                    <div class="chart-container">
+                        <canvas id="readinessChart"></canvas>
+                        <div id="readiness-chart-placeholder" class="absolute inset-0 flex items-center justify-center text-gray-500 bg-gray-50 rounded-xl" style="display:none;">
+                            <p>Loading Chart Library...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Smart Profile Tab (Feature 1) -->
+            <div id="profile" class="tab-content">
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-6">👤 Smart Profile: The Core of Your Intelligence</h2>
+                <p class="text-gray-600 mb-8">Complete your profile to unlock highly personalized AI recommendations. Your data is protected and used only to enhance your career path.</p>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg space-y-6">
+                    <!-- Basic Info & Profile Picture -->
+                    <div class="flex items-center space-x-6 border-b pb-4">
+                        <div class="w-20 h-20 bg-sky-200 rounded-full flex items-center justify-center text-3xl font-bold text-sky-800 shrink-0 shadow-lg">AS</div>
+                        <div>
+                            <p class="text-2xl font-bold" id="profile-name">Anya Sharma</p>
+                            <p class="text-sm text-gray-500" id="profile-details">BPUT/2022/CS045 | CS & Eng. | Semester 5</p>
+                        </div>
+                    </div>
+
+                    <!-- Academic Data -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3">Academic Data</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <label for="cgpa-input" class="sr-only">CGPA</label>
+                            <input type="text" id="cgpa-input" placeholder="CGPA (e.g., 8.4)" value="8.4" class="p-2 border rounded-md">
+                            <label for="attendance-input" class="sr-only">Current Attendance Percentage</label>
+                            <input type="text" id="attendance-input" placeholder="Current Attendance %" value="92%" class="p-2 border rounded-md">
+                        </div>
+                    </div>
+
+                    <!-- Skills, Interests, Certifications -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3">Skills, Interests & Certifications</h3>
+                        <label for="hard-skills-textarea" class="sr-only">Hard Skills List</label>
+                        <textarea id="hard-skills-textarea" placeholder="List your hard skills (Python, React, SQL, etc.)" rows="3" class="w-full p-2 border rounded-md mb-2">Python, JavaScript, Data Structures, Cloud Computing</textarea>
+                        <label for="certifications-textarea" class="sr-only">Certifications List</label>
+                        <textarea id="certifications-textarea" placeholder="Certifications (e.g., AWS Certified Cloud Practitioner)" rows="2" class="w-full p-2 border rounded-md mb-2">Google UX Design Cert.</textarea>
+                    </div>
+
+                    <!-- Resume/LinkedIn Import & NLP Mock -->
+                    <div class="p-4 bg-sky-50 rounded-lg">
+                        <h4 class="font-semibold text-sky-700 mb-2">Resume Analyzer (NLP Powered)</h4>
+                        <div class="flex space-x-3">
+                            <input type="file" id="resume-upload" class="hidden" accept=".pdf,.docx">
+                            <button onclick="document.getElementById('resume-upload').click()" class="flex-grow p-2 bg-sky-600 text-white rounded-md hover:bg-sky-700 transition-colors">
+                                Upload Resume (PDF/DOCX)
+                            </button>
+                            <button class="flex-grow p-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+                                Import from LinkedIn (Mock)
+                            </button>
+                        </div>
+                        <p class="text-xs text-sky-700 mt-2">💡 Bonus: NLP auto-analyzes the document and extracts skills automatically.</p>
+                    </div>
+
+                    <!-- Behavioral Traits (Mock Quiz) -->
+                    <div class="p-4 bg-amber-50 rounded-lg">
+                        <h4 class="font-semibold text-amber-700 mb-2">Behavioral Traits Assessment (Big 5)</h4>
+                        <p class="text-sm text-amber-700 mb-3">This short quiz helps the AI understand your work style for better team/job matching.</p>
+                        <button class="p-2 bg-amber-500 text-white rounded-md hover:bg-amber-600 transition-colors font-medium">Start 5-Minute Quiz</button>
+                    </div>
+
+                    <button class="w-full p-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-bold shadow-md">
+                        Save Profile Updates
+                    </button>
+                </div>
+            </div>
+            <!-- 3. AI Insights & Gaps Tab (Features 2, 4, 8) -->
+            <div id="insights" class="tab-content">
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-6">💡 AI Skill Gap Analysis & Roadmap</h2>
+                <p class="text-gray-600 mb-8">This section analyzes the gap between your current skills and the skills required for your target career, providing an actionable learning path to close the difference.</p>
+
+                <!-- Recommendation Cards (Feature 2) -->
+                <h3 class="text-xl font-semibold mb-4">Top 3 Career Recommendations</h3>
+                <!-- Responsive Grid: stacks on mobile, 3 columns on medium+ screens -->
+                <div id="recommendation-cards" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <!-- Cards will be populated here -->
+                </div>
+
+                <!-- Skill Gap Chart (Feature 4) -->
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+                    <h3 class="text-xl font-semibold mb-3">Skill Gap Comparison</h3>
+                    <div class="flex space-x-4 mb-4">
+                        <label for="career-select" class="font-medium text-gray-700">Compare against:</label>
+                        <select id="career-select" class="p-1 border rounded-md">
+                            <option value="data-scientist">Data Scientist</option>
+                            <option value="web-dev">Full Stack Web Developer</option>
+                        </select>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-4">The Radar Chart compares your current proficiency (Blue) against the required proficiency (Red) for the selected career path. Proficiency is measured on a scale of 0 to 100.</p>
+                    <!-- CLS FIX: fixed height prevents layout shift when chart renders -->
+                    <div class="chart-container max-w-lg mx-auto">
+                        <canvas id="skillGapChart"></canvas>
+                        <div id="skill-chart-placeholder" class="absolute inset-0 flex items-center justify-center text-gray-500 bg-gray-50 rounded-xl" style="display:none;">
+                            <p>Loading Chart Library...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Learning Path Generator (Feature 4) -->
+                <div class="bg-indigo-50 p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-semibold text-indigo-700 mb-3">AI Learning Path Generator</h3>
+                    <p class="text-gray-600 mb-4">Based on the identified gaps, the AI has auto-generated a step-by-step plan to guide your learning.</p>
+                    <div id="learning-path" class="space-y-3">
+                        <!-- Path steps will be populated here -->
+                    </div>
+                    <button class="mt-4 p-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors font-medium">
+                        View Detailed Course Links
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4. Job Matching Tab (Feature 3) -->
+            <div id="opportunities" class="tab-content">
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-6">💼 Internship & Job Smart Matching</h2>
+                <p class="text-gray-600 mb-8">Your personalized feed shows internships and jobs perfectly matched to your Smart Profile, complete with an AI Compatibility Score.</p>
+
+                <!-- Filters (Responsive: Wraps on small screens) -->
+                <div class="flex flex-wrap gap-4 p-4 bg-white rounded-xl shadow-lg mb-8">
+                    <!-- A11Y FIX: Added sr-only labels for filter selects -->
+                    <label for="domain-filter" class="sr-only">Filter by Domain</label>
+                    <select id="domain-filter" class="p-2 border rounded-md">
+                        <option>Filter by Domain</option>
+                        <option>Web Development</option>
+                        <option>Data Science</option>
+                    </select>
+
+                    <label for="stipend-filter" class="sr-only">Filter by Stipend</label>
+                    <select id="stipend-filter" class="p-2 border rounded-md">
+                        <option>Filter by Stipend</option>
+                        <option>Paid</option>
+                        <option>Unpaid</option>
+                    </select>
+
+                    <label for="sort-filter" class="sr-only">Sort by Match Score</label>
+                    <select id="sort-filter" class="p-2 border rounded-md">
+                        <option>Sort by Match Score</option>
+                        <option>Highest First</option>
+                    </select>
+                </div>
+
+                <!-- Internship Feed -->
+                <div id="internship-feed" class="space-y-4">
+                    <!-- Internship Cards will be populated here -->
+                </div>
+
+                <!-- Application Tracking -->
+                <div class="mt-8 bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-semibold mb-3">Real-Time Application Tracking</h3>
+                    <div class="flex justify-between items-center text-sm font-medium text-gray-600 border-b pb-2 mb-2">
+                        <span>Applied To</span>
+                        <span>Status</span>
+                    </div>
+                    <div id="application-tracker" class="space-y-3">
+                        <!-- Application rows will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Mentorship & AI Chat Tab (Features 5, 6) - CHATBOT HERE -->
+            <div id="community" class="tab-content">
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-6">🤝 Peer Mentorship & AI Career Chat</h2>
+                <p class="text-gray-600 mb-8">Connect with alumni and industry mentors based on your branch and career interests for real-world guidance and success stories.</p>
+
+                <!-- Mentor Match -->
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+                    <h3 class="text-xl font-semibold mb-4">Suggested Mentors</h3>
+                    <!-- Responsive Grid: stacks on mobile, 2 columns on medium+ screens -->
+                    <div id="mentor-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Mentor Cards will be populated here -->
+                    </div>
+                </div>
+
+                <!-- AI Chatbot (Full View - Feature 6) -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                        <span class="text-3xl mr-2">🤖</span> AI Chatbot: Dedicated Career Guidance
+                    </h3>
+                    <p class="text-sm text-gray-500 mb-4">Ask about internships, resume feedback, or skill-building resources—the chatbot uses your profile data for personalized answers.</p>
+                    <div id="full-chat-window" class="h-64 overflow-y-auto bg-gray-50 border p-3 rounded-lg mb-3 space-y-3">
+                        <div class="p-3 bg-sky-100 rounded-xl rounded-bl-none max-w-[80%]">
+                            <p class="font-semibold text-sky-700">AI Mentor</p>
+                            <p class="text-sm">Hello Anya! I see you are interested in Data Science. How can I help you today?</p>
+                        </div>
+                    </div>
+                    <div class="flex">
+                        <label for="full-chat-input" class="sr-only">Chat Input</label>
+                        <input type="text" id="full-chat-input" placeholder="Type your question..." class="flex-grow p-3 border border-gray-300 rounded-l-lg focus:ring-sky-500 focus:border-sky-500">
+                        <button id="send-full-chat" class="bg-sky-600 text-white p-3 rounded-r-lg hover:bg-sky-700 transition-colors font-medium">Send</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Privacy & Settings Tab (Feature 10) -->
+            <div id="settings" class="tab-content">
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-6">🔐 Security & Privacy Controls</h2>
+                <p class="text-gray-600 mb-8">You are in full control of your data. Manage profile visibility and request data deletion as needed.</p>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg space-y-6">
+                    <!-- Profile Visibility (Feature 10) -->
+                    <div class="flex justify-between items-center border-b pb-4">
+                        <div>
+                            <p class="font-semibold">Profile Visibility Toggle</p>
+                            <p class="text-sm text-gray-500">Control who can view your profile for mentorship matching.</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" value="" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900">Public</span>
+                        </label>
+                    </div>
+
+                    <!-- Data Management (GDPR-like) (Feature 10) -->
+                    <div class="border-b pb-4">
+                        <h3 class="font-semibold mb-2">Data Export & Deletion</h3>
+                        <p class="text-sm text-gray-500 mb-4">Exercise your right to access and manage your personal data stored on this platform (GDPR/CCPA Compliance).</p>
+                        <div class="space-y-3">
+                            <button class="w-full p-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+                                Export All Data (JSON)
+                            </button>
+                            <button class="w-full p-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors font-medium" onclick="showMockModal('data-delete')">
+                                Permanently Delete My Account Data
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Multi-Step Authentication (Mock) (Feature 10) -->
+                    <div class="border-b pb-4">
+                        <h3 class="font-semibold mb-2">Authentication</h3>
+                        <p class="text-sm text-gray-500 mb-4">Two-Factor Authentication is currently enabled for maximum security.</p>
+                        <button class="p-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+                            Manage Authentication Settings (Mock)
+                        </button>
+                    </div>
+
+                    <!-- Session Management / Log Out -->
+                    <div class="pt-2">
+                        <h3 class="font-semibold mb-2">Session Management</h3>
+                        <p class="text-sm text-gray-500 mb-4">Securely log out of the Career Intelligence Hub.</p>
+                        <button onclick="handleLogout()" class="w-full p-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors font-bold shadow-md flex items-center justify-center space-x-2">
+                            <span>➡️ Log Out</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Mock Modal for Alerts/Confirmations (Replacement for alert() and confirm()) -->
+    <div id="mock-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full">
+            <h3 id="modal-title" class="text-xl font-bold mb-4"></h3>
+            <p id="modal-message" class="text-gray-700 mb-6"></p>
+            <div class="flex justify-end space-x-3">
+                <button onclick="hideMockModal()" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
+                <button id="modal-action-btn" class="px-4 py-2 text-white rounded-lg transition-colors"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Up Modal (Feature 7) -->
+    <div id="level-up-modal" class="fixed inset-0 level-up-modal-bg z-[60] flex items-center justify-center hidden p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-lg w-full text-center relative overflow-hidden transform transition-all duration-300 scale-90" id="level-up-card">
+            <div class="absolute inset-0 z-0 flex items-center justify-center text-8xl text-yellow-300 opacity-20 confetti">
+                🎉
+            </div>
+            <div class="relative z-10">
+                <p class="text-5xl mb-4 transform scale-y-100 animate-pulse">🌟</p>
+                <h3 class="text-3xl font-extrabold text-sky-600 mb-2">LEVEL UP!</h3>
+                <p class="text-xl font-medium text-gray-800">New Achievement Earned: <span id="new-achievement-name" class="font-bold"></span></p>
+                <p class="text-sm text-gray-500 mt-2">Your AI Readiness Index increased to <span id="new-score" class="font-bold text-green-600"></span>!</p>
+                <button onclick="hideLevelUpModal()" class="mt-6 px-6 py-2 bg-sky-600 text-white font-bold rounded-lg hover:bg-sky-700 transition-colors shadow-md">Awesome!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PERFORMANCE FIX: Moved Tailwind CSS to end of body for non-blocking JIT loading -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- CRITICAL REQUEST FIX: Chart.js removed and will be dynamically loaded by the JS code only when needed. -->
+    <script>
+        // Mock user skills data for the radar chart (Feature 4)
+        const mockSkills = {
+            labels: ['Python', 'SQL', 'Algorithms', 'Deep Learning', 'Communication', 'Teamwork'],
+            current: [85, 70, 75, 40, 90, 80],
+            required_data_scientist: [90, 95, 80, 85, 70, 75],
+            required_web_dev: [70, 60, 90, 30, 85, 90]
+        };
+
+        const userData = {
+            name: "Anya Sharma",
+            rollNo: "BPUT/2022/CS045",
+            branch: "Computer Science & Eng.",
+            semester: 5,
+            cgpa: 8.4,
+            readinessScore: 68,
+            ariBreakdown: {
+                academic: 75,
+                skill: 62,
+                behavioral: 78
+            },
+            achievements: [{
+                name: "Code Master",
+                icon: "💻",
+                description: "Completed 5 DSA Challenges",
+                color: "bg-purple-700"
+            }, {
+                name: "Pro Communicator",
+                icon: "🗣️",
+                description: "Excellent LLM Communication Score",
+                color: "bg-pink-700"
+            }, {
+                name: "Profile Complete",
+                icon: "🌟",
+                description: "100% Data Uploaded",
+                color: "bg-amber-700"
+            }],
+            careerRecommendations: [{
+                id: "data-scientist",
+                domain: "Data Scientist",
+                match: 92,
+                salary: "₹8 LPA",
+                roadmap: "Learn Pandas, SQL, Advanced ML.",
+                badge: "92% — Your SQL and Math skills match 9/10 requirements."
+            }, {
+                id: "web-dev",
+                domain: "Full Stack Web Developer",
+                match: 85,
+                salary: "₹6.5 LPA",
+                roadmap: "Master React, Node.js, Cloud Deployment.",
+                badge: "85% — Need more framework experience (React/Vue)."
+            }, {
+                id: "ui-ux",
+                domain: "UI/UX Designer",
+                match: 70,
+                salary: "₹5 LPA",
+                roadmap: "Figma proficiency, Portfolio building, User Research.",
+                badge: "70% — Behavioral traits match, but design portfolio is missing."
+            }, ],
+            internships: [{
+                title: "Data Analyst Intern",
+                company: "TechNova Analytics",
+                match: 92,
+                stipend: "₹25k/month",
+                location: "Bangalore"
+            }, {
+                title: "Frontend Dev Internship",
+                company: "InnovateWeb",
+                match: 88,
+                stipend: "₹20k/month",
+                location: "Remote"
+            }, {
+                title: "Product Design Intern",
+                company: "DesignSphere",
+                match: 75,
+                stipend: "₹15k/month",
+                location: "Pune"
+            }, {
+                title: "Cloud Engineer Trainee",
+                company: "Azure-X",
+                match: 55,
+                stipend: "₹30k/month",
+                location: "Hyderabad"
+            }, ],
+            applications: [{
+                job: "Data Analyst Intern",
+                status: "Interview Scheduled",
+                date: "Oct 15"
+            }, {
+                job: "Frontend Dev Internship",
+                status: "Application Reviewed",
+                date: "Oct 10"
+            }, {
+                job: "Product Design Intern",
+                status: "Applied",
+                date: "Sep 28"
+            }, ],
+            mentors: [{
+                name: "Rajesh Kumar",
+                field: "Data Science, Alumni '19",
+                connect: "Connect via Chat"
+            }, {
+                name: "Priya Singh",
+                field: "UI/UX Lead, Alumni '21",
+                connect: "Schedule Video Call"
+            }, ],
+            readinessHistory: {
+                ari: [45, 52, 61, 68],
+                skill: [40, 48, 55, 62],
+                academic: [70, 72, 74, 75],
+                labels: ['Jul', 'Aug', 'Sep', 'Oct']
+            },
+            skills: mockSkills,
+            currentLevel: {
+                name: "Level 5 - Emerging Analyst",
+                icon: "⭐"
+            },
+            topGap: "Advanced ML/Deep Learning",
+            primaryBlocker: "Incomplete **Data Mastery** Module (40% completed)"
+        };
+
+        let skillGapChart, readinessChart;
+        let chartLibraryLoaded = false;
+        let currentChatHistory = [];
+
+        // --- Performance Critical: Dynamic Script Loader (Feature 6 Fix) ---
+
+        function loadChartLibrary(callback) {
+            if (chartLibraryLoaded) {
+                callback();
+                return;
+            }
+
+            // Show placeholders while loading
+            document.getElementById('readiness-chart-placeholder').style.display = 'flex';
+            document.getElementById('skill-chart-placeholder').style.display = 'flex';
+
+            const script = document.createElement('script');
+            script.src = "https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js";
+            script.onload = () => {
+                chartLibraryLoaded = true;
+                // Hide placeholders on success
+                document.getElementById('readiness-chart-placeholder').style.display = 'none';
+                document.getElementById('skill-chart-placeholder').style.display = 'none';
+                callback();
+            };
+            script.onerror = () => {
+                console.error("Failed to load Chart.js library.");
+                document.getElementById('readiness-chart-placeholder').textContent = "Chart failed to load.";
+                document.getElementById('skill-chart-placeholder').textContent = "Chart failed to load.";
+            }
+            document.head.appendChild(script);
+        }
+
+        // --- Utility Functions ---
+
+        function getInitials(name) {
+            if (!name) return '';
+            const parts = name.split(' ');
+            let initials = '';
+            for (let part of parts) {
+                if (part.length > 0) {
+                    initials += part[0].toUpperCase();
+                }
+            }
+            return initials;
+        }
+
+        function generateImprovementWish(userData) {
+            let message = `Let's keep pushing for success this week.`;
+            if (userData.topGap) {
+                message = `Let's conquer the **${userData.topGap}** gap to unlock the next job level.`;
+            } else if (userData.readinessScore < 70) {
+                message = `Focus on completing your incomplete **Data Mastery** module to boost your score.`;
+            } else if (userData.readinessScore >= 80) {
+                message = `You are job-ready! Start refining your resume and applying to your top matches.`;
+            }
+            return message;
+        }
+
+        // --- Core Functions ---
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active-tab'));
+            document.getElementById(tabId).classList.add('active-tab');
+
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('bg-sky-50', 'text-sky-800', 'hover:bg-sky-100', 'active');
+                button.classList.add('text-gray-600', 'hover:bg-gray-100');
+                if (button.dataset.tab === tabId) {
+                    button.classList.add('bg-sky-50', 'text-sky-800', 'hover:bg-sky-100', 'active');
+                    button.classList.remove('text-gray-600', 'hover:bg-gray-100');
+                }
+            });
+
+            // Dynamic Chart Loading based on tab access
+            if (tabId === 'overview' || tabId === 'insights') {
+                loadChartLibrary(() => {
+                    // Once loaded, render the charts if the tab is still active and chart hasn't been drawn
+                    if (tabId === 'overview' && !readinessChart) {
+                        renderReadinessChart('ari');
+                    }
+                    if (tabId === 'insights' && !skillGapChart) {
+                        renderSkillGapChart(document.getElementById('career-select').value);
+                    }
+                });
+            }
+        }
+
+        function initDashboard() {
+            // 1. Initial Content Population
+            populateOverview();
+            populateRecommendations();
+            populateInternships();
+            populateApplications();
+            populateMentors();
+            populateLearningPath();
+
+            // 2. Set up Event Listeners
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', () => switchTab(button.dataset.tab));
+            });
+
+            document.getElementById('career-select').addEventListener('change', (e) => updateSkillGapChart(e.target.value));
+            document.getElementById('readiness-filter').addEventListener('change', (e) => updateReadinessChart(e.target.value));
+
+            document.getElementById('mode-toggle').addEventListener('click', toggleDarkMode);
+            document.getElementById('font-size').addEventListener('input', changeFontSize);
+
+            // Chatbot listener for the full view
+            document.getElementById('send-full-chat').addEventListener('click', () => handleChatSubmit('full-chat-input', 'full-chat-window'));
+
+            // 3. Set initial tab
+            switchTab('overview');
+
+            // 4. BFCache Fix Listener (Simulate Real-Time Connection Cleanup)
+            // If a real-time connection (like WebSockets) is not cleaned up, the page won't be cached.
+            window.addEventListener('pagehide', (event) => {
+                // Check for event.persisted to see if the browser will attempt to use BFCache
+                if (event.persisted) {
+                    console.log("Mock: Cleaning up real-time resources to allow BFCache entry.");
+                    // In a real app, here you would close WebSocket connections,
+                    // unsubscribe from Firestore listeners, etc.
+                }
+            });
+        }
+
+        // --- Data Population (Omitted for brevity, but retained in file) ---
+
+        function populateOverview() {
+            // NEW: Profile Header
+            document.getElementById('profile-initials').textContent = getInitials(userData.name);
+            document.getElementById('welcome-message').textContent = `Welcome back, ${userData.name}!`;
+            document.getElementById('improvement-wish').innerHTML = `<span class="font-semibold text-indigo-600">🎯 Your Focus:</span> ${generateImprovementWish(userData)}`;
+
+            // ARI Details
+            document.getElementById('readiness-score').textContent = userData.readinessScore;
+            document.getElementById('readiness-bar').style.width = userData.readinessScore + '%';
+
+            document.getElementById('ari-academic').textContent = userData.ariBreakdown.academic;
+            document.getElementById('ari-skill').textContent = userData.ariBreakdown.skill;
+            document.getElementById('ari-behavioral').textContent = userData.ariBreakdown.behavioral;
+
+            // Level, Gap, Blocker
+            document.getElementById('current-level-icon').textContent = userData.currentLevel.icon;
+            document.getElementById('current-level-name').textContent = userData.currentLevel.name;
+            document.getElementById('top-gap').textContent = userData.topGap;
+            document.getElementById('primary-blocker').innerHTML = userData.primaryBlocker.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+
+            const achList = document.getElementById('achievement-list');
+            achList.innerHTML = userData.achievements.map(a => {
+                let colorClass = a.color;
+                if (colorClass.includes('purple')) colorClass = 'bg-purple-700';
+                if (colorClass.includes('pink')) colorClass = 'bg-pink-700';
+                if (colorClass.includes('yellow')) colorClass = 'bg-amber-700';
+
+                return `
+            <div class="p-2 px-3 rounded-full text-white font-medium text-sm ${colorClass} shadow-md flex items-center">
+                <span class="text-lg mr-2">${a.icon}</span>
+                ${a.name}
+            </div>
+            `;
+            }).join('');
+        }
+
+        function populateRecommendations() {
+            const container = document.getElementById('recommendation-cards');
+            container.innerHTML = userData.careerRecommendations.map(rec => `
+            <div class="bg-white p-4 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                <div class="flex justify-between items-start">
+                    <p class="text-xl font-bold text-sky-700">${rec.domain}</p>
+                    <span class="text-xs font-bold text-white px-2 py-1 rounded-full ${rec.match > 80 ? 'bg-green-600' : 'bg-amber-500'}">${rec.match}% Match</span>
+                </div>
+                <p class="text-sm text-gray-600 mt-2">${rec.roadmap}</p>
+                <div class="mt-3 p-2 bg-sky-50 rounded-lg text-sm text-sky-700 font-medium">
+                    <span class="font-bold">AI Badge:</span> ${rec.badge}
+                </div>
+                <button class="mt-4 text-sm text-sky-800 font-medium hover:underline">View Roadmap</button>
+            </div>
+        `).join('');
+        }
+
+        function populateInternships() {
+            const feed = document.getElementById('internship-feed');
+            feed.innerHTML = userData.internships.map(job => `
+            <div class="bg-white p-5 rounded-xl shadow-md flex flex-col sm:flex-row justify-between items-start sm:items-center hover:bg-gray-50 transition-colors">
+                <div>
+                    <p class="text-lg font-bold text-gray-800">${job.title} @ ${job.company}</p>
+                    <p class="text-sm text-gray-500">${job.location} | ${job.stipend}</p>
+                </div>
+                <div class="flex items-center space-x-4 mt-3 sm:mt-0">
+                    <div class="text-center">
+                        <span class="text-xl font-bold text-sky-600">${job.match}%</span>
+                        <p class="text-xs text-gray-500">Match Score</p>
+                    </div>
+                    <button class="p-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                        Apply
+                    </button>
+                </div>
+            </div>
+        `).join('');
+        }
+
+        function populateApplications() {
+            const tracker = document.getElementById('application-tracker');
+            tracker.innerHTML = userData.applications.map(app => {
+                let color, icon;
+                if (app.status === "Interview Scheduled") {
+                    color = 'text-green-600';
+                    icon = '✅';
+                } else if (app.status === "Application Reviewed") {
+                    color = 'text-amber-600';
+                    icon = '👀';
+                } else {
+                    color = 'text-sky-600';
+                    icon = '✉️';
+                }
+
+                return `
+                <div class="flex justify-between items-center text-sm">
+                    <span>${app.job}</span>
+                    <span class="${color} font-semibold flex items-center">${icon} ${app.status}</span>
+                </div>
+            `;
+            }).join('');
+        }
+
+        function populateMentors() {
+            const list = document.getElementById('mentor-list');
+            list.innerHTML = userData.mentors.map(mentor => `
+            <div class="bg-gray-50 p-4 rounded-xl shadow-inner flex flex-col">
+                <p class="text-lg font-bold text-gray-800">${mentor.name}</p>
+                <p class="text-sm text-gray-500">${mentor.field}</p>
+                <button class="mt-3 p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">${mentor.connect}</button>
+            </div>
+        `).join('');
+        }
+
+        function populateLearningPath() {
+            const path = document.getElementById('learning-path');
+            const steps = [
+                "1. Foundational Review: Complete the Python basics module (Estimated 40 hrs).",
+                "2. Data Mastery: Enroll in the 'Advanced SQL for Data Science' course and finish 5 core projects (Estimated 80 hrs).",
+                "3. Project Application: Start a personal portfolio project using ML models (Estimated 120 hrs).",
+                "4. Certification: Prepare for and attempt the Google Professional Data Engineer certification (Estimated 60 hrs)."
+            ];
+            path.innerHTML = steps.map((step, index) => `
+            <div class="flex items-start space-x-3">
+                <span class="text-xl text-indigo-500 font-bold">${index + 1}.</span>
+                <p class="text-gray-700">${step}</p>
+            </div>
+        `).join('');
+        }
+
+        // --- Chart.js Functions (Relies on Chart object being available) ---
+
+        function renderReadinessChart(key) {
+            if (!chartLibraryLoaded || typeof Chart === 'undefined') return;
+
+            const ctx = document.getElementById('readinessChart').getContext('2d');
+            const dataKey = key;
+            const scoreData = userData.readinessHistory[dataKey];
+            const label = dataKey === 'ari' ? 'Overall ARI' : (dataKey === 'skill' ? 'Skill Score' : 'Academic Score');
+            const color = dataKey === 'ari' ? '#0ea5e9' : (dataKey === 'skill' ? '#6366f1' : '#10b981'); // sky, indigo, emerald
+
+            if (readinessChart) readinessChart.destroy();
+
+            readinessChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: userData.readinessHistory.labels,
+                    datasets: [{
+                        label: label,
+                        data: scoreData,
+                        borderColor: color,
+                        backgroundColor: `${color}40`, // 40 is opacity 25%
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: color,
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: color
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: `${label} Progress Over Time`
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Score'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Month'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateReadinessChart(key) {
+            if (!chartLibraryLoaded || !readinessChart) {
+                if (document.getElementById('overview').classList.contains('active-tab')) {
+                    loadChartLibrary(() => renderReadinessChart(key));
+                }
+                return;
+            }
+            readinessChart.destroy();
+            renderReadinessChart(key);
+        }
+
+        function renderSkillGapChart(careerKey) {
+            if (!chartLibraryLoaded || typeof Chart === 'undefined') return;
+
+            const ctx = document.getElementById('skillGapChart').getContext('2d');
+            if (skillGapChart) skillGapChart.destroy();
+
+            const requiredData = userData.skills[`required_${careerKey.replace('-', '_')}`] || userData.skills.required_data_scientist;
+
+            skillGapChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: userData.skills.labels,
+                    datasets: [{
+                        label: 'Your Current Skills',
+                        data: userData.skills.current,
+                        backgroundColor: 'rgba(14, 165, 233, 0.4)', // sky-500
+                        borderColor: '#0ea5e9',
+                        pointBackgroundColor: '#0ea5e9',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#0ea5e9'
+                    }, {
+                        label: 'Required Skills (Data Scientist)',
+                        data: requiredData,
+                        backgroundColor: 'rgba(239, 68, 68, 0.4)', // red-500
+                        borderColor: '#ef4444',
+                        pointBackgroundColor: '#ef4444',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#ef4444'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    elements: {
+                        line: {
+                            borderWidth: 3
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: false
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            pointLabels: {
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateSkillGapChart(careerKey) {
+            if (!chartLibraryLoaded || !skillGapChart) {
+                if (document.getElementById('insights').classList.contains('active-tab')) {
+                    loadChartLibrary(() => renderSkillGapChart(careerKey));
+                }
+                return;
+            }
+
+            const requiredData = userData.skills[`required_${careerKey.replace('-', '_')}`] || userData.skills.required_data_scientist;
+            const labelText = `Required Skills (${careerKey.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')})`;
+
+            skillGapChart.data.datasets[1].data = requiredData;
+            skillGapChart.data.datasets[1].label = labelText;
+            skillGapChart.update();
+        }
+
+        // --- Gamification Logic (Omitted for brevity) ---
+
+        function handleLevelUp() {
+            const newScore = userData.readinessScore + 5;
+            const newAchievement = {
+                name: "Hackathon Ready",
+                icon: "🚀",
+                description: "Applied for first hackathon",
+                color: "bg-green-700"
+            };
+
+            userData.readinessScore = newScore;
+            userData.achievements.push(newAchievement);
+            userData.readinessHistory.ari.push(newScore);
+            userData.readinessHistory.labels.push('Nov');
+            userData.currentLevel.name = "Level 6 - Aspiring Professional";
+
+            populateOverview();
+            if (readinessChart) updateReadinessChart('ari'); // Only update if chart is already drawn
+            showLevelUpModal(newAchievement.name, newScore);
+        }
+
+        function showLevelUpModal(achievementName, newScore) {
+            const modal = document.getElementById('level-up-modal');
+            document.getElementById('new-achievement-name').textContent = achievementName;
+            document.getElementById('new-score').textContent = newScore;
+            modal.classList.remove('hidden');
+            document.getElementById('level-up-card').classList.add('scale-100');
+        }
+
+        function hideLevelUpModal() {
+            document.getElementById('level-up-card').classList.remove('scale-100');
+            setTimeout(() => {
+                document.getElementById('level-up-modal').classList.add('hidden');
+            }, 300);
+        }
+
+        // --- Chatbot Logic (Omitted for brevity) ---
+
+        function handleChatSubmit(inputId, windowId) {
+            const input = document.getElementById(inputId);
+            const window = document.getElementById(windowId);
+            const userText = input.value.trim();
+
+            if (userText === '') return;
+
+            // 1. Add User Message
+            window.innerHTML += `
+            <div class="flex justify-end">
+                <div class="p-3 bg-sky-600 text-white rounded-xl rounded-br-none max-w-[80%]">
+                    <p class="text-sm">${userText}</p>
+                </div>
+            </div>
+        `;
+            currentChatHistory.push({
+                role: 'user',
+                text: userText
+            });
+            input.value = '';
+
+            // 2. Mock AI Response based on content-aware RAG principle
+            setTimeout(() => {
+                let aiResponse = "I'm sorry, I didn't quite catch that. Try asking me about your 'Data Scientist roadmap' or 'How to improve my readiness score'.";
+
+                if (userText.toLowerCase().includes('roadmap') || userText.toLowerCase().includes('learn next')) {
+                    aiResponse = "Based on your interest in **Data Science**, your next step should be to tackle the **Data Mastery** module (SQL & Pandas). This will close your biggest technical skill gap! We estimate an 80-hour commitment.";
+                } else if (userText.toLowerCase().includes('readiness score')) {
+                    aiResponse = `Your current ARI is **${userData.readinessScore}/100**. To reach the next level, focus on completing the 5-Minute Behavioral Quiz in your **Smart Profile** to unlock better matching and a score boost!`;
+                } else if (userText.toLowerCase().includes('apply')) {
+                    aiResponse = "To apply for an internship, simply click the 'Apply' button next to the job listing in the **Job Matching** tab. We will also track your progress in the Application Tracker.";
+                }
+
+                window.innerHTML += `
+                <div class="flex justify-start">
+                    <div class="p-3 bg-gray-200 rounded-xl rounded-tl-none max-w-[80%]">
+                        <p class="font-semibold text-gray-800">AI Mentor</p>
+                        <p class="text-sm">${aiResponse}</p>
+                    </div>
+                </div>
+            `;
+                window.scrollTop = window.scrollHeight; // Auto-scroll
+            }, 800);
+        }
+
+        // --- Accessibility & UI ---
+
+        function toggleDarkMode() {
+            const body = document.body;
+            const isDark = body.classList.toggle('dark-mode');
+
+            // FORCED REFLOWS FIX: Use a single transaction to toggle all required classes
+            // This is a minimal, safe way to toggle a few global classes without triggering reads
+            const elementsToToggle = [
+                'bg-gray-50', 'bg-gray-900', // Body background
+                'text-gray-800', 'text-gray-100', // Body text color
+                'bg-white', 'bg-gray-800', // Card backgrounds
+                'shadow-lg', 'shadow-xl', // Shadow adjustments
+                'text-gray-900', 'text-white' // Heading text
+            ];
+
+            document.querySelectorAll('*').forEach(el => {
+                elementsToToggle.forEach((cls) => {
+                    if (el.classList.contains(cls)) {
+                        // Optimized: only replace if the element currently has the class
+                        const replacement = isDark ? (cls.replace('bg-gray-50', 'bg-gray-900').replace('text-gray-800', 'text-gray-100').replace('bg-white', 'bg-gray-800').replace('text-gray-900', 'text-white').replace('shadow-lg', 'shadow-xl')) : (cls.replace('bg-gray-900', 'bg-gray-50').replace('text-gray-100', 'text-gray-800').replace('bg-gray-800', 'bg-white').replace('text-white', 'text-gray-900').replace('shadow-xl', 'shadow-lg'));
+
+                        if (cls !== replacement) {
+                            el.classList.toggle(cls);
+                            el.classList.toggle(replacement);
+                        }
+                    }
+                });
+            });
+
+            // Icon management
+            document.getElementById('sun-icon').classList.toggle('hidden', isDark);
+            document.getElementById('moon-icon').classList.toggle('hidden', !isDark);
+
+            // Chart color updates (if charts exist)
+            if (readinessChart && chartLibraryLoaded) {
+                const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                readinessChart.options.scales.y.grid.color = gridColor;
+                readinessChart.options.scales.x.grid.color = gridColor;
+                readinessChart.update();
+            }
+            if (skillGapChart && chartLibraryLoaded) {
+                skillGapChart.options.scales.r.grid.color = gridColor;
+                skillGapChart.update();
+            }
+        }
+
+        function changeFontSize(e) {
+            const factor = e.target.value;
+            document.body.style.fontSize = `${factor}em`;
+        }
+
+        function handleLogout() {
+            showMockModal('logout');
+        }
+
+        function showMockModal(type) {
+            const modal = document.getElementById('mock-modal');
+            const title = document.getElementById('modal-title');
+            const message = document.getElementById('modal-message');
+            const actionBtn = document.getElementById('modal-action-btn');
+
+            title.className = 'text-xl font-bold mb-4';
+            actionBtn.className = 'px-4 py-2 text-white rounded-lg transition-colors';
+
+            if (type === 'data-delete') {
+                title.textContent = "Confirm Data Deletion";
+                title.classList.add('text-red-600');
+                message.textContent = "Are you sure you want to permanently delete ALL your profile data, achievements, and chat history? This action cannot be undone.";
+                actionBtn.textContent = "Delete Data";
+                actionBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+                actionBtn.onclick = () => {
+                    console.log("Mock data deletion initiated.");
+                    hideMockModal();
+                };
+            } else if (type === 'logout') {
+                title.textContent = "Confirm Log Out";
+                title.classList.add('text-sky-600');
+                message.textContent = "Are you sure you want to end your session? You will need to sign back in to access your profile.";
+                actionBtn.textContent = "Log Out";
+                actionBtn.classList.add('bg-sky-600', 'hover:bg-sky-700');
+                actionBtn.onclick = () => {
+                    console.log("Mock user logged out successfully.");
+                    hideMockModal();
+                };
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function hideMockModal() {
+            document.getElementById('mock-modal').classList.add('hidden');
+        }
+
+        // Initialize the dashboard once the DOM is fully loaded and all scripts are executed.
+        window.onload = initDashboard;
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,1034 @@
+<!--
+  BPUT Employer Career Intelligence Dashboard
+  Performance Fixes Applied: LCP optimization via deferred Tailwind CSS and asynchronous font loading.
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>careerspark - BPUT Employer Intelligence Dashboard</title>
+    <meta name="description" content="AI-Powered platform for BPUT employers: smart candidate matching, AI shortlisting, and real-time analytics.">
+
+    <!-- CRITICAL PERFORMANCE FIXES START -->
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Asynchronously load the Inter font CSS (Non-blocking font loading) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript>
+        <!-- Fallback for non-JS browsers to still get the styles -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    </noscript>
+    <!-- CRITICAL PERFORMANCE FIXES END -->
+
+    <style>
+         :root {
+            /* Primary Accent Blue */
+            --color-primary: #2E86DE;
+        }
+        
+        body {
+            /* Use Inter font with sans-serif fallback while Inter loads */
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh;
+        }
+        /* Dark Mode Styles */
+        
+        body.dark-mode {
+            background-color: #1f2937;
+            /* Dark Gray */
+            color: #f3f4f6;
+            /* Light Gray Text */
+        }
+        
+        .dark-mode .card,
+        .dark-mode .sidebar {
+            background-color: #374151;
+            /* Deeper Dark Gray */
+            color: #d1d5db;
+        }
+        
+        .dark-mode .tab-button:not(.active) {
+            color: #d1d5db;
+            background-color: #4b5563;
+        }
+        
+        .dark-mode .tab-button:not(.active):hover {
+            background-color: #6b7280;
+        }
+        
+        .dark-mode .table-header {
+            background-color: #4b5563;
+        }
+        
+        .dark-mode .input-field {
+            background-color: #1f2937;
+            border-color: #4b5563;
+            color: #f3f4f6;
+        }
+        
+        .dark-mode .active-tab-style {
+            background-color: #3b82f630;
+            /* Light blue accent */
+            color: #93c5fd;
+        }
+        /* Custom Scrollbar for Chat Window */
+        
+        #chat-window::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .dark-mode #chat-window::-webkit-scrollbar-thumb {
+            background: #60a5fa;
+        }
+        
+        #chat-window::-webkit-scrollbar-thumb {
+            background: var(--color-primary);
+            border-radius: 4px;
+        }
+        
+        #chat-window::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        /* CLS FIX: Fixed height for chart containers prevents layout shifts when charts are rendered late. */
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 350px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .active-tab {
+            display: block;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Mock API Data (Script at top for data availability, doesn't block rendering) -->
+    <script>
+        const MOCK_DATA = {
+            stats: {
+                activeJobs: 5,
+                totalApplicants: 124,
+                avgMatchScore: 82,
+                internsHired: 15
+            },
+            applicants: [{
+                id: 1,
+                name: "Anya Sharma",
+                role: "Data Analyst Intern",
+                match: 92,
+                status: "New",
+                scoreBreakdown: {
+                    skills: 95,
+                    experience: 85,
+                    academic: 96
+                },
+                skills: ["Python", "SQL", "ML"],
+                readiness: 90
+            }, {
+                id: 2,
+                name: "Vikas Patil",
+                role: "Full Stack Developer",
+                match: 88,
+                status: "Reviewed",
+                scoreBreakdown: {
+                    skills: 90,
+                    experience: 80,
+                    academic: 85
+                },
+                skills: ["React", "Node.js", "MongoDB"],
+                readiness: 85
+            }, {
+                id: 3,
+                name: "Priya Singh",
+                role: "UI/UX Designer",
+                match: 75,
+                status: "Shortlisted",
+                scoreBreakdown: {
+                    skills: 70,
+                    experience: 80,
+                    academic: 75
+                },
+                skills: ["Figma", "User Research"],
+                readiness: 75
+            }, {
+                id: 4,
+                name: "Kunal Jha",
+                role: "Data Analyst Intern",
+                match: 95,
+                status: "New",
+                scoreBreakdown: {
+                    skills: 99,
+                    experience: 90,
+                    academic: 97
+                },
+                skills: ["Python", "Pandas", "Stats"],
+                readiness: 94
+            }, {
+                id: 5,
+                name: "Megha Rao",
+                role: "Full Stack Developer",
+                match: 60,
+                status: "Rejected",
+                scoreBreakdown: {
+                    skills: 65,
+                    experience: 50,
+                    academic: 70
+                },
+                skills: ["HTML", "CSS"],
+                readiness: 65
+            }, ],
+            jobPosts: [{
+                id: 1,
+                title: "Data Analyst Intern",
+                skills: ["Python", "SQL", "ML"],
+                applicants: 45,
+                status: "Open"
+            }, {
+                id: 2,
+                title: "Full Stack Developer",
+                skills: ["React", "Node.js"],
+                applicants: 32,
+                status: "Open"
+            }, {
+                id: 3,
+                title: "UI/UX Designer",
+                skills: ["Figma", "Design Thinking"],
+                applicants: 25,
+                status: "Closed"
+            }, ],
+            // Data for Analytics Chart
+            analyticsHistory: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                applicants: [50, 75, 90, 120, 105],
+                hires: [5, 8, 10, 12, 11]
+            }
+        };
+
+        let currentActiveTab = 'overview';
+        let chartLibraryLoaded = false;
+        let analyticsChart = null;
+
+        // --- Core Functions ---
+
+        function switchTab(tabId) {
+            // Update active content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active-tab'));
+            document.getElementById(tabId).classList.add('active-tab');
+
+            // Update active button style
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('bg-blue-600', 'text-white', 'active-tab-style');
+                button.classList.add('text-gray-600', 'hover:bg-gray-100');
+
+                if (document.body.classList.contains('dark-mode')) {
+                    button.classList.remove('text-gray-600', 'hover:bg-gray-100');
+                    button.classList.add('text-gray-200', 'hover:bg-gray-700');
+                }
+
+                if (button.dataset.tab === tabId) {
+                    button.classList.add('bg-blue-600', 'text-white', 'active-tab-style');
+                    button.classList.remove('text-gray-600', 'hover:bg-gray-100', 'text-gray-200', 'hover:bg-gray-700');
+                }
+            });
+
+            currentActiveTab = tabId;
+
+            // PERFORMANCE FIX: Dynamic Chart Loading (Critical Request Chain reduction)
+            if (tabId === 'analytics') {
+                loadChartLibrary(renderAnalyticsChart);
+            }
+        }
+
+        // PERFORMANCE FIX: Dynamic Chart.js Loader
+        function loadChartLibrary(callback) {
+            if (chartLibraryLoaded) {
+                callback();
+                return;
+            }
+
+            const placeholder = document.getElementById('analytics-chart-placeholder');
+            placeholder.classList.remove('hidden');
+
+            const script = document.createElement('script');
+            script.src = "https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js";
+            script.onload = () => {
+                chartLibraryLoaded = true;
+                placeholder.classList.add('hidden');
+                callback();
+            };
+            script.onerror = () => {
+                console.error("Failed to load Chart.js library.");
+                placeholder.textContent = "Chart library failed to load.";
+            }
+            document.head.appendChild(script);
+        }
+
+        // --- Data Rendering Functions ---
+
+        function renderOverview() {
+            const {
+                activeJobs,
+                totalApplicants,
+                avgMatchScore,
+                internsHired
+            } = MOCK_DATA.stats;
+            document.getElementById('stat-active-jobs').textContent = activeJobs;
+            document.getElementById('stat-applicants').textContent = totalApplicants;
+            document.getElementById('stat-match-score').textContent = `${avgMatchScore}%`;
+            document.getElementById('stat-hires').textContent = internsHired;
+
+            renderRecentApplicants();
+        }
+
+        function renderRecentApplicants(applicants = MOCK_DATA.applicants) {
+            const tbody = document.getElementById('applicants-table-body');
+            tbody.innerHTML = '';
+            applicants.forEach(app => {
+                const row = tbody.insertRow();
+                row.className = 'border-b hover:bg-gray-50 dark-mode:hover:bg-gray-700';
+
+                const statusColor = app.status === 'New' ? 'text-blue-600 bg-blue-100 dark-mode:bg-blue-900' :
+                    app.status === 'Shortlisted' ? 'text-green-600 bg-green-100 dark-mode:bg-green-900' :
+                    'text-gray-600 bg-gray-100 dark-mode:bg-gray-700';
+
+                row.innerHTML = `
+                    <td class="p-3 font-semibold">${app.name}</td>
+                    <td class="p-3 text-sm">${app.role}</td>
+                    <td class="p-3 text-lg font-bold text-orange-600">${app.match}%</td>
+                    <td class="p-3"><span class="px-2 py-0.5 text-xs rounded-full ${statusColor}">${app.status}</span></td>
+                    <td class="p-3">
+                        <button onclick="showCandidateProfile(${app.id})" class="text-blue-600 hover:text-blue-800 font-medium">View</button>
+                    </td>
+                `;
+            });
+        }
+
+        function renderAnalyticsChart() {
+            if (!chartLibraryLoaded || typeof Chart === 'undefined') return;
+
+            const ctx = document.getElementById('analyticsChart').getContext('2d');
+            if (analyticsChart) analyticsChart.destroy();
+
+            analyticsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: MOCK_DATA.analyticsHistory.labels,
+                    datasets: [{
+                        label: 'Total Applicants',
+                        data: MOCK_DATA.analyticsHistory.applicants,
+                        backgroundColor: 'rgba(46, 134, 222, 0.7)', // Primary Blue
+                        borderColor: '#2E86DE',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Interns Hired',
+                        data: MOCK_DATA.analyticsHistory.hires,
+                        backgroundColor: 'rgba(255, 159, 67, 0.7)', // Orange Accent
+                        borderColor: '#FF9F43',
+                        borderWidth: 1,
+                        yAxisID: 'y1' // Use a separate axis for clarity
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Applicants'
+                            },
+                            grid: {
+                                color: document.body.classList.contains('dark-mode') ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Hires'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            } // Only draw grid lines for the main axis
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- AI Feature Simulations & Helpers ---
+
+        // AI Feature 1: AI Smart Job Description Analyzer
+        function analyzeJobDescription() {
+            const desc = document.getElementById('job-desc-input').value;
+            const title = document.getElementById('job-title-input').value;
+            const requiredSkillsInput = document.getElementById('required-skills-input');
+            const suggestions = document.getElementById('ai-suggestions');
+
+            if (desc.toLowerCase().includes('machine learning') || desc.toLowerCase().includes('data')) {
+                const autoSkills = "Python, SQL, Pandas, Machine Learning, Communication";
+                requiredSkillsInput.value = autoSkills;
+                suggestions.innerHTML = `
+                    <div class="mt-2 text-sm text-green-600 dark-mode:text-green-400">
+                        <p>💡 AI Suggested Skills: **${autoSkills}** (Auto-filled)</p>
+                        <p>📈 Expected Applicant Volume: **High (100+)** due to popular demand.</p>
+                        <p>✍️ Suggested Title: **Data Science Analyst Intern (High Match Potential)**</p>
+                    </div>
+                `;
+            } else if (desc.toLowerCase().includes('react') || desc.toLowerCase().includes('frontend')) {
+                const autoSkills = "React, JavaScript, Tailwind CSS, REST APIs";
+                requiredSkillsInput.value = autoSkills;
+                suggestions.innerHTML = `
+                    <div class="mt-2 text-sm text-green-600 dark-mode:text-green-400">
+                        <p>💡 AI Suggested Skills: **${autoSkills}** (Auto-filled)</p>
+                        <p>📈 Expected Applicant Volume: **Medium (50-75)**. Posting early recommended.</p>
+                        <p>✍️ Suggested Title: **Frontend Web Developer Intern (React/Node)**</p>
+                    </div>
+                `;
+            } else {
+                requiredSkillsInput.value = "";
+                suggestions.innerHTML = `
+                    <div class="mt-2 text-sm text-yellow-600 dark-mode:text-yellow-400">
+                        <p>💡 AI Suggestions: Please provide more details for accurate skill tagging.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // AI Feature 2: AI Shortlist Assistant
+        function autoShortlist() {
+            const shortlistedApplicants = MOCK_DATA.applicants
+                .filter(app => app.match >= 85 && app.status !== 'Shortlisted')
+                .sort((a, b) => b.match - a.match)
+                .slice(0, 10); // Top 10
+
+            if (shortlistedApplicants.length > 0) {
+                shortlistedApplicants.forEach(app => app.status = 'Shortlisted');
+                renderRecentApplicants(MOCK_DATA.applicants); // Re-render table
+                showMockModal('shortlist-success', `Successfully shortlisted ${shortlistedApplicants.length} top candidates with a match score of 85% or higher!`);
+            } else {
+                showMockModal('shortlist-fail', "No new candidates meet the 85% match threshold for auto-shortlisting.");
+            }
+        }
+
+        // AI Feature 3: Candidate Comparison Tool Modal
+        function startComparison() {
+            const checkboxes = Array.from(document.querySelectorAll('input[name="compare-candidate"]:checked'));
+            const selectedIds = checkboxes.map(cb => parseInt(cb.value));
+
+            if (selectedIds.length === 0 || selectedIds.length > 3) {
+                showMockModal('comparison-error', "Please select 1 to 3 candidates for the side-by-side comparison.");
+                return;
+            }
+
+            const candidates = MOCK_DATA.applicants.filter(app => selectedIds.includes(app.id));
+            const modalBody = document.getElementById('comparison-modal-body');
+
+            const comparisonHTML = `
+                <table class="w-full text-left table-auto border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100 dark-mode:bg-gray-700">
+                            <th class="p-3 text-sm font-semibold">Feature</th>
+                            ${candidates.map(c => `<th class="p-3 text-sm font-semibold">${c.name}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Row 1: Role -->
+                        <tr class="border-b dark-mode:border-gray-600">
+                            <td class="p-3 font-medium text-gray-700 dark-mode:text-gray-300">Target Role</td>
+                            ${candidates.map(c => `<td class="p-3">${c.role}</td>`).join('')}
+                        </tr>
+                        <!-- Row 2: Overall Match Score -->
+                        <tr class="border-b dark-mode:border-gray-600">
+                            <td class="p-3 font-medium text-gray-700 dark-mode:text-gray-300">Match Score</td>
+                            ${candidates.map(c => `<td class="p-3 text-lg font-bold text-orange-600">${c.match}%</td>`).join('')}
+                        </tr>
+                        <!-- Row 3: Top Skills -->
+                        <tr class="border-b dark-mode:border-gray-600">
+                            <td class="p-3 font-medium text-gray-700 dark-mode:text-gray-300">Top Skills</td>
+                            ${candidates.map(c => `<td class="p-3 text-sm">${c.skills.join(', ')}</td>`).join('')}
+                        </tr>
+                        <!-- Row 4: AI Readiness Score -->
+                        <tr class="border-b dark-mode:border-gray-600">
+                            <td class="p-3 font-medium text-gray-700 dark-mode:text-gray-300">AI Readiness Score</td>
+                            ${candidates.map(c => `<td class="p-3">${c.readiness}%</td>`).join('')}
+                        </tr>
+                        <!-- Row 5: AI Hireability Insight -->
+                        <tr class="dark-mode:border-gray-600 bg-blue-50 dark-mode:bg-blue-900/50">
+                            <td class="p-3 font-medium text-blue-800 dark-mode:text-blue-200">AI Insight</td>
+                            ${candidates.map(c => `<td class="p-3 text-sm text-blue-700 dark-mode:text-blue-300">${c.match > 90 ? 'High-Impact Candidate, Recommend Immediate Interview' : (c.match > 80 ? 'Strong Technical Match, Good Fit' : 'Requires further skill validation')}</td>`).join('')}
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+
+            modalBody.innerHTML = comparisonHTML;
+            document.getElementById('comparison-modal').classList.remove('hidden');
+        }
+
+        function closeComparisonModal() {
+            document.getElementById('comparison-modal').classList.add('hidden');
+        }
+
+        // AI Feature 5: AI-Powered Communication Center
+        function sendPersonalizedMessage(candidateName, skills) {
+            const firstSkill = skills[0];
+            const message = `Hi ${candidateName}, we were highly impressed by your profile. Specifically, your strong **${firstSkill}** skills make you an excellent match for this role. Would you be available for a short interview next week?`;
+
+            document.getElementById('chat-window').innerHTML += `
+                <div class="flex justify-start mb-3">
+                    <div class="p-3 bg-green-100 dark-mode:bg-green-900 rounded-xl rounded-tl-none max-w-[80%]">
+                        <p class="font-semibold text-green-700 dark-mode:text-green-300">AI Comm. Draft (to ${candidateName})</p>
+                        <p class="text-sm">${message}</p>
+                    </div>
+                </div>
+            `;
+             document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
+        }
+
+        // Full Candidate Profile View Modal
+        function showCandidateProfile(id) {
+            const candidate = MOCK_DATA.applicants.find(a => a.id === id);
+            if (!candidate) return;
+
+            const profileContent = document.getElementById('candidate-profile-content');
+            profileContent.innerHTML = `
+                <h3 class="text-3xl font-bold text-gray-900 dark-mode:text-white mb-4">${candidate.name}</h3>
+                <p class="text-xl text-blue-600 dark-mode:text-blue-300 font-semibold">${candidate.role}</p>
+
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Overall Score Card -->
+                    <div class="card p-4 rounded-xl shadow-lg border-l-4 border-orange-500">
+                        <p class="text-sm font-medium text-gray-500 dark-mode:text-gray-400">Match Score</p>
+                        <p class="text-5xl font-extrabold text-orange-600">${candidate.match}%</p>
+                        <button onclick="sendPersonalizedMessage('${candidate.name}', ${JSON.stringify(candidate.skills)})" class="mt-2 text-sm text-blue-600 hover:underline">
+                            💡 AI Draft Personalized Message
+                        </button>
+                    </div>
+
+                    <!-- AI Hireability Insights (AI Feature 3) -->
+                    <div class="card p-4 rounded-xl shadow-lg border-l-4 border-green-500">
+                        <p class="text-sm font-medium text-gray-500 dark-mode:text-gray-400">AI Hireability Insight</p>
+                        <p class="text-lg font-semibold text-green-700 dark-mode:text-green-300 mt-1">
+                           ${candidate.match > 90 ? 'Exceptional Match: Ready for Senior Internship.' : 'Strong Candidate: High potential, minor gaps in one area.'}
+                        </p>
+                        <p class="text-xs text-gray-500 dark-mode:text-gray-400 mt-2">
+                           **Reasoning:** Strong in ${candidate.skills[0]} and has a readiness score of ${candidate.readiness}%.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Match Breakdown -->
+                <div class="mt-6">
+                    <h4 class="text-xl font-semibold mb-3">Match Breakdown</h4>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center"><span class="font-medium">Skills Match:</span> <span class="text-lg font-bold">${candidate.scoreBreakdown.skills}%</span></div>
+                        <div class="flex justify-between items-center"><span class="font-medium">Experience Overlap:</span> <span class="text-lg font-bold">${candidate.scoreBreakdown.experience}%</span></div>
+                        <div class="flex justify-between items-center"><span class="font-medium">Academic Alignment:</span> <span class="text-lg font-bold">${candidate.scoreBreakdown.academic}%</span></div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-8 flex justify-end space-x-4">
+                    <button onclick="showMockModal('reject', 'Reject ${candidate.name}?')" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Reject</button>
+                    <button onclick="showMockModal('hire', 'Hire ${candidate.name}?')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Hire</button>
+                </div>
+            `;
+            document.getElementById('candidate-profile-modal').classList.remove('hidden');
+        }
+
+        function closeCandidateProfileModal() {
+             document.getElementById('candidate-profile-modal').classList.add('hidden');
+        }
+
+        // --- UI & Accessibility Helpers ---
+
+        // A11Y & Performance Fix: Dark Mode
+        function toggleDarkMode() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+
+            const isDark = body.classList.contains('dark-mode');
+            document.getElementById('sun-icon').classList.toggle('hidden', isDark);
+            document.getElementById('moon-icon').classList.toggle('hidden', !isDark);
+
+            // Update charts if they exist (to fix grid line color)
+            if (analyticsChart && chartLibraryLoaded) {
+                const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                analyticsChart.options.scales.y.grid.color = gridColor;
+                if (analyticsChart.options.scales.y1) analyticsChart.options.scales.y1.grid.color = gridColor;
+                analyticsChart.update();
+            }
+        }
+
+        // No alert()/confirm() - use custom modal
+        function showMockModal(type, message) {
+            const modal = document.getElementById('mock-modal');
+            const title = document.getElementById('modal-title');
+            const msg = document.getElementById('modal-message');
+            const actionBtn = document.getElementById('modal-action-btn');
+            const cancelBtn = document.getElementById('modal-cancel-btn');
+
+            title.textContent = message;
+            msg.textContent = "Please confirm the action.";
+            actionBtn.textContent = "Confirm";
+            actionBtn.className = 'px-4 py-2 text-white rounded-lg transition-colors';
+            cancelBtn.classList.remove('hidden');
+
+            if (type === 'shortlist-success') {
+                title.textContent = "Success";
+                msg.textContent = message;
+                actionBtn.textContent = "Okay";
+                actionBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                cancelBtn.classList.add('hidden');
+            } else if (type === 'shortlist-fail' || type === 'comparison-error') {
+                 title.textContent = "Action Required";
+                 msg.textContent = message;
+                 actionBtn.textContent = "Got it";
+                 actionBtn.classList.add('bg-orange-600', 'hover:bg-orange-700');
+                 cancelBtn.classList.add('hidden');
+            } else if (type === 'hire' || type === 'reject') {
+                actionBtn.classList.add(type === 'hire' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700');
+                actionBtn.onclick = () => {
+                    console.log(`Mock: ${type} action confirmed.`);
+                    hideMockModal();
+                };
+            }
+
+            modal.classList.remove('hidden');
+            // Ensure action button's default behavior is reset if not a hire/reject action
+            if (type !== 'hire' && type !== 'reject') actionBtn.onclick = hideMockModal;
+        }
+
+        function hideMockModal() {
+            document.getElementById('mock-modal').classList.add('hidden');
+        }
+
+        function handleLogout() {
+            showMockModal('logout', 'Log Out Confirmation');
+            document.getElementById('modal-message').textContent = 'Are you sure you want to log out of the BPUT Employer Dashboard?';
+            document.getElementById('modal-action-btn').classList.add('bg-gray-600', 'hover:bg-gray-700');
+            document.getElementById('modal-action-btn').textContent = 'Log Out';
+            document.getElementById('modal-action-btn').onclick = () => {
+                console.log("Mock: Employer logged out.");
+                hideMockModal();
+                // In a real app, this would redirect or clear session storage
+            };
+        }
+
+        // --- Initialization ---
+
+        window.onload = function() {
+            // Initial render
+            renderOverview();
+            // Set initial tab and style
+            switchTab('overview');
+
+            // Add event listeners
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', () => switchTab(button.dataset.tab));
+            });
+            document.getElementById('mode-toggle').addEventListener('click', toggleDarkMode);
+            document.getElementById('job-desc-input').addEventListener('input', analyzeJobDescription);
+
+             // BFCache Fix Listener (Simulate Real-Time Connection Cleanup)
+            window.addEventListener('pagehide', (event) => {
+                if (event.persisted) {
+                    // In a real app, here you would unsubscribe from Firebase listeners or close WebSockets.
+                    console.log("BFCache Check: Cleaning up connections for fast back navigation.");
+                }
+            });
+
+             // Set initial dark mode state if needed (optional based on user preference persistence)
+             // if (localStorage.getItem('theme') === 'dark') toggleDarkMode();
+        };
+    </script>
+
+    <!-- Header -->
+    <header class="bg-white dark-mode:bg-gray-800 shadow-md sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <span class="text-3xl text-blue-600">🏢</span>
+                <h1 class="text-xl font-bold text-gray-900 dark-mode:text-white">BPUT Hiring Hub</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm font-medium text-gray-500 dark-mode:text-gray-400 hidden sm:block">Welcome, Acme Corp</span>
+                <button class="p-2 rounded-full hover:bg-gray-100 dark-mode:hover:bg-gray-700 transition-colors" title="Notifications">🔔</button>
+                <!-- Dark Mode Toggle -->
+                <button id="mode-toggle" class="p-2 rounded-full hover:bg-gray-100 dark-mode:hover:bg-gray-700 transition-colors" title="Toggle Dark Mode">
+                    <span id="sun-icon">☀️</span>
+                    <span id="moon-icon" class="hidden">🌙</span>
+                </button>
+                <button onclick="handleLogout()" class="text-gray-500 dark-mode:text-gray-400 hover:text-red-500 transition-colors" title="Log Out">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:grid lg:grid-cols-12 lg:gap-8">
+
+        <!-- Sidebar Navigation (Responsive: Hidden on mobile, fixed width on lg) -->
+        <nav class="lg:col-span-3 mb-6 lg:mb-0">
+            <div class="sidebar bg-white dark-mode:bg-gray-800 p-4 rounded-xl shadow-lg space-y-1 sticky top-20">
+                <button data-tab="overview" class="tab-button w-full text-left flex items-center p-3 rounded-lg font-medium bg-blue-600 text-white transition-colors active-tab-style">
+                    <span class="mr-3 text-xl">🏠</span> Dashboard (Overview)
+                </button>
+                <button data-tab="post-job" class="tab-button w-full text-left flex items-center p-3 rounded-lg font-medium text-gray-600 dark-mode:text-gray-200 hover:bg-gray-100 dark-mode:hover:bg-gray-700 transition-colors">
+                    <span class="mr-3 text-xl">🧾</span> Post Internship / Job
+                </button>
+                <button data-tab="candidates" class="tab-button w-full text-left flex items-center p-3 rounded-lg font-medium text-gray-600 dark-mode:text-gray-200 hover:bg-gray-100 dark-mode:hover:bg-gray-700 transition-colors">
+                    <span class="mr-3 text-xl">👤</span> View Applicants
+                </button>
+                <button data-tab="analytics" class="tab-button w-full text-left flex items-center p-3 rounded-lg font-medium text-gray-600 dark-mode:text-gray-200 hover:bg-gray-100 dark-mode:hover:bg-gray-700 transition-colors">
+                    <span class="mr-3 text-xl">📊</span> Analytics / Reports
+                </button>
+                <button data-tab="feedback" class="tab-button w-full text-left flex items-center p-3 rounded-lg font-medium text-gray-600 dark-mode:text-gray-200 hover:bg-gray-100 dark-mode:hover:bg-gray-700 transition-colors">
+                    <span class="mr-3 text-xl">💬</span> Feedback & Ratings
+                </button>
+                <button data-tab="settings" class="tab-button w-full text-left flex items-center p-3 rounded-lg font-medium text-gray-600 dark-mode:text-gray-200 hover:bg-gray-100 dark-mode:hover:bg-gray-700 transition-colors">
+                    <span class="mr-3 text-xl">⚙️</span> Account & Settings
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="lg:col-span-9">
+
+            <!-- 1. Overview Tab -->
+            <div id="overview" class="tab-content active-tab">
+                <h2 class="text-2xl font-bold mb-6 text-gray-900 dark-mode:text-white">Dashboard Overview</h2>
+
+                <!-- Overview Cards (Responsive Grid) -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <!-- Card 1: Active Jobs -->
+                    <div class="card bg-white dark-mode:bg-gray-800 p-5 rounded-xl shadow-md border-l-4 border-blue-600">
+                        <p class="text-sm font-medium text-gray-500 dark-mode:text-gray-400">Active Jobs</p>
+                        <p id="stat-active-jobs" class="text-3xl font-extrabold text-gray-900 dark-mode:text-white mt-1">5</p>
+                    </div>
+                    <!-- Card 2: Total Applicants -->
+                    <div class="card bg-white dark-mode:bg-gray-800 p-5 rounded-xl shadow-md border-l-4 border-orange-500">
+                        <p class="text-sm font-medium text-gray-500 dark-mode:text-gray-400">Total Applicants</p>
+                        <p id="stat-applicants" class="text-3xl font-extrabold text-gray-900 dark-mode:text-white mt-1">124</p>
+                    </div>
+                    <!-- Card 3: Avg Match Score -->
+                    <div class="card bg-white dark-mode:bg-gray-800 p-5 rounded-xl shadow-md border-l-4 border-green-500">
+                        <p class="text-sm font-medium text-gray-500 dark-mode:text-gray-400">Avg Match Score</p>
+                        <p id="stat-match-score" class="text-3xl font-extrabold text-gray-900 dark-mode:text-white mt-1">82%</p>
+                    </div>
+                    <!-- Card 4: Interns Hired -->
+                    <div class="card bg-white dark-mode:bg-gray-800 p-5 rounded-xl shadow-md border-l-4 border-indigo-500">
+                        <p class="text-sm font-medium text-gray-500 dark-mode:text-gray-400">Interns Hired</p>
+                        <p id="stat-hires" class="text-3xl font-extrabold text-gray-900 dark-mode:text-white mt-1">15</p>
+                    </div>
+                </div>
+
+                <!-- Recent Applicants Table -->
+                <div class="card bg-white dark-mode:bg-gray-800 p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-semibold mb-4">Recent Applicants (Smart Matching)</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full table-auto border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 dark-mode:bg-gray-700 table-header">
+                                    <th class="p-3 text-left text-sm font-semibold">Name</th>
+                                    <th class="p-3 text-left text-sm font-semibold">Role</th>
+                                    <th class="p-3 text-left text-sm font-semibold">Match %</th>
+                                    <th class="p-3 text-left text-sm font-semibold">Status</th>
+                                    <th class="p-3 text-left text-sm font-semibold">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="applicants-table-body">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <button onclick="switchTab('candidates')" class="mt-4 w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold transition-colors">
+                        View All Candidates
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. Post Internship / Job Tab -->
+            <div id="post-job" class="tab-content">
+                <h2 class="text-2xl font-bold mb-6 text-gray-900 dark-mode:text-white">🧾 Post New Opening</h2>
+
+                <div class="card bg-white dark-mode:bg-gray-800 p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-semibold mb-4">AI Smart Job Description Analyzer (Feature 1)</h3>
+                    <form onsubmit="event.preventDefault(); showMockModal('job-post', 'Job Posted Successfully');">
+                        <div class="space-y-4">
+                            <!-- Job Title -->
+                            <label class="block">
+                                <span class="font-medium">Job Title *</span>
+                                <input type="text" id="job-title-input" placeholder="e.g., Data Analyst Intern" class="input-field w-full mt-1 p-2 border rounded-md dark-mode:bg-gray-700 dark-mode:border-gray-600" required>
+                            </label>
+
+                            <!-- Job Description (Triggers AI analysis) -->
+                            <label class="block">
+                                <span class="font-medium">Job Description * (Type keywords like 'React' or 'ML')</span>
+                                <textarea id="job-desc-input" rows="4" placeholder="Describe the role, responsibilities, and key challenges..." class="input-field w-full mt-1 p-2 border rounded-md dark-mode:bg-gray-700 dark-mode:border-gray-600" required></textarea>
+                            </label>
+
+                            <!-- AI Auto-Suggested Skills -->
+                            <label class="block">
+                                <span class="font-medium">Required Skills (AI Auto-Filled) *</span>
+                                <input type="text" id="required-skills-input" placeholder="Python, SQL, Machine Learning..." class="input-field w-full mt-1 p-2 border rounded-md dark-mode:bg-gray-700 dark-mode:border-gray-600" required>
+                            </label>
+
+                            <!-- AI Suggestions Panel -->
+                            <div id="ai-suggestions" class="p-3 bg-blue-50 dark-mode:bg-blue-900/50 rounded-lg">
+                                <p class="text-sm text-blue-800 dark-mode:text-blue-300">💡 Type a description above to get **AI skill tags** and **applicant volume predictions**.</p>
+                            </div>
+
+                            <!-- Other Details (Responsive Grid) -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <label class="block">
+                                    <span class="font-medium">Stipend (per month)</span>
+                                    <input type="text" placeholder="₹20,000" class="input-field w-full mt-1 p-2 border rounded-md dark-mode:bg-gray-700 dark-mode:border-gray-600">
+                                </label>
+                                <label class="block">
+                                    <span class="font-medium">Duration (Months)</span>
+                                    <input type="number" placeholder="6" class="input-field w-full mt-1 p-2 border rounded-md dark-mode:bg-gray-700 dark-mode:border-gray-600">
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="mt-6 w-full p-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-bold transition-colors shadow-md">
+                            Post Job & Start Smart Matching
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 3. View Applicants Tab -->
+            <div id="candidates" class="tab-content">
+                <h2 class="text-2xl font-bold mb-6 text-gray-900 dark-mode:text-white">👤 Smart Candidate Matching (124 Applicants)</h2>
+
+                <div class="card bg-white dark-mode:bg-gray-800 p-6 rounded-xl shadow-lg">
+                    <!-- AI Shortlist Assistant (Feature 2) & Comparison Tool (Feature 3) -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-3 sm:space-y-0">
+                        <button onclick="autoShortlist()" class="w-full sm:w-auto p-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold transition-colors flex-grow sm:flex-grow-0">
+                            🧠 Auto Shortlist Top 10 (AI Feature)
+                        </button>
+                        <button onclick="startComparison()" class="w-full sm:w-auto p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold transition-colors flex-grow sm:flex-grow-0">
+                            ⚖️ Compare Selected Candidates (1-3)
+                        </button>
+                    </div>
+
+                    <!-- Applicants Table with Checkboxes for Comparison -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full table-auto border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 dark-mode:bg-gray-700 table-header">
+                                    <th class="p-3 text-left text-sm font-semibold">
+                                        <label class="sr-only" for="select-all-candidates">Select All</label>
+                                        <input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    </th>
+                                    <th class="p-3 text-left text-sm font-semibold">Name</th>
+                                    <th class="p-3 text-left text-sm font-semibold">Role</th>
+                                    <th class="p-3 text-left text-sm font-semibold">Match %</th>
+                                    <th class="p-3 text-left text-sm font-semibold">Status</th>
+                                    <th class="p-3 text-left text-sm font-semibold">View</th>
+                                </tr>
+                            </thead>
+                            <tbody id="candidates-table-body">
+                                <!-- Full list populated here -->
+                                <script>
+                                    // Populate the full candidate table with comparison checkboxes
+                                    const cBody = document.getElementById('candidates-table-body');
+                                    cBody.innerHTML = MOCK_DATA.applicants.map(app => {
+                                        const statusColor = app.status === 'New' ? 'text-blue-600 bg-blue-100 dark-mode:bg-blue-900' :
+                                            app.status === 'Shortlisted' ? 'text-green-600 bg-green-100 dark-mode:bg-green-900' :
+                                            'text-gray-600 bg-gray-100 dark-mode:bg-gray-700';
+                                        return `
+                                            <tr class="border-b dark-mode:border-gray-600 hover:bg-gray-50 dark-mode:hover:bg-gray-700">
+                                                <td class="p-3">
+                                                    <label class="sr-only" for="compare-candidate-${app.id}">Select ${app.name} for comparison</label>
+                                                    <input type="checkbox" id="compare-candidate-${app.id}" name="compare-candidate" value="${app.id}" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                </td>
+                                                <td class="p-3 font-semibold">${app.name}</td>
+                                                <td class="p-3 text-sm">${app.role}</td>
+                                                <td class="p-3 text-lg font-bold text-orange-600">${app.match}%</td>
+                                                <td class="p-3"><span class="px-2 py-0.5 text-xs rounded-full ${statusColor}">${app.status}</span></td>
+                                                <td class="p-3">
+                                                    <button onclick="showCandidateProfile(${app.id})" class="text-blue-600 hover:text-blue-800 font-medium">View Profile</button>
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join('');
+                                </script>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Analytics / Reports Tab -->
+            <div id="analytics" class="tab-content">
+                <h2 class="text-2xl font-bold mb-6 text-gray-900 dark-mode:text-white">📊 Analytics Dashboard (Feature 4)</h2>
+
+                <div class="card bg-white dark-mode:bg-gray-800 p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-semibold mb-4">Applicant & Hiring Trends</h3>
+                    <p class="text-sm text-gray-500 dark-mode:text-gray-400 mb-4">Metrics: Average time to hire (8 days), Most common skill in applicants (Python).</p>
+
+                    <!-- CLS FIX: fixed height prevents layout shift when chart renders -->
+                    <div class="chart-container">
+                        <canvas id="analyticsChart"></canvas>
+                        <div id="analytics-chart-placeholder" class="absolute inset-0 flex items-center justify-center text-gray-500 bg-gray-50 dark-mode:bg-gray-900 rounded-xl hidden">
+                            <p class="text-lg">Loading Chart Engine (Performance Optimization)...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Feedback & Ratings Tab -->
+            <div id="feedback" class="tab-content">
+                <h2 class="text-2xl font-bold mb-6 text-gray-900 dark-mode:text-white">💬 Feedback & Intern Ratings</h2>
+
+                <div class="card bg-white dark-mode:bg-gray-800 p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-semibold mb-4">Rate Your Interns (Improves AI Model)</h3>
+                    <form onsubmit="event.preventDefault(); showMockModal('feedback-submit', 'Thank you for your feedback!');">
+                        <div class="space-y-4">
+                            <label class="block">
+                                <span class="font-medium">Intern Name</span>
+                                <select class="input-field w-full mt-1 p-2 border rounded-md dark-mode:bg-gray-700 dark-mode:border-gray-600">
+                                    <option>Select Intern (e.g., Jane Doe)</option>
+                                    <option>Anya Sharma (Hired)</option>
+                                </select>
+                            </label>
+
+                            <label class="block">
+                                <span class="font-medium">Rating (1-5 Stars)</span>
+                                <div class="flex space-x-1 mt-1 text-2xl">
+                                    <span class="cursor-pointer">⭐</span><span class="cursor-pointer">⭐</span><span class="cursor-pointer">⭐</span><span class="cursor-pointer">⭐</span><span class="cursor-pointer">⭐</span>
+                                </div>
+                            </label>
+
+                            <label class="block">
+                                <span class="font-medium">Detailed Feedback (Used for Sentiment Analysis)</span>
+                                <textarea rows="3" placeholder="Provide constructive feedback on performance, teamwork, and skills." class="input-field w-full mt-1 p-2 border rounded-md dark-mode:bg-gray-700 dark-mode:border-gray-600"></textarea>
+                            </label>
+                        </div>
+                        <button type="submit" class="mt-6 w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold transition-colors shadow-md">
+                            Submit Feedback
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 6. Account & Settings Tab -->
+            <div id="settings" class="tab-content">
+                <h2 class="text-2xl font-bold mb-6 text-gray-900 dark-mode:text-white">⚙️ Account & Settings</h2>
+
+                <div class="card bg-white dark-mode:bg-gray-800 p-6 rounded-xl shadow-lg space-y-6">
+
+                    <!-- Multi-User Access Control -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">Team Access (Multi-User)</h3>
+                        <p class="text-sm text-gray-500 dark-mode:text-gray-400 mb-3">Manage which team members can post jobs and view analytics.</p>
+                        <button class="p-2 px-4 bg-gray-200 dark-mode:bg-gray-700 rounded-lg hover:bg-gray-300 dark-mode:hover:bg-gray-600 font-medium">
+                            Manage Users
+                        </button>
+                    </div>
+
+                    <!-- Company Profile -->
+                    <div class="pt-4 border-t dark-mode:border-gray-700">
+                        <h3 class="text-xl font-semibold mb-2">Company Profile</h3>
+                        <p class="text-sm text-gray-500 dark-mode:text-gray-400 mb-3">Update your logo, description, and contact information for students.</p>
+                        <button class="p-2 px-4 bg-gray-200 dark-mode:bg-gray-700 rounded-lg hover:bg-gray-300 dark-mode:hover:bg-gray-600 font-medium">
+                            Edit Profile
+                        </button>
+                    </div>
+
+                    <!-- Subscription Plan -->
+                    <div class="pt-4 border-t dark-mode:border-gray-700">
+                        <h3 class="text-xl font-semibold mb-2">Subscription Plan</h3>
+                        <p class="text-sm text-green-600 dark-mode:text-green-400 font-medium mb-3">Current Plan: Premium (Unlimited Posts & AI Features)</p>
+                        <button class="p-2 px-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-medium">
+                            Upgrade / Change Plan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white dark-mode:bg-gray-800 shadow-inner mt-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center text-sm text-gray-500 dark-mode:text-gray-400">
+            <span>© BPUT Career Platform 2024</span>
+            <div class="space-x-4">
+                <a href="#" class="hover:text-blue-600">Privacy Policy</a>
+                <a href="#" class="hover:text-blue-600">Help Center</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODALS -->
+
+    <!-- Generic Mock Modal (Replacement for alert/confirm) -->
+    <div id="mock-modal" class="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center hidden p-4">
+        <div class="card bg-white dark-mode:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-sm w-full">
+            <h3 id="modal-title" class="text-xl font-bold mb-4 text-gray-900 dark-mode:text-white"></h3>
+            <p id="modal-message" class="text-gray-700 dark-mode:text-gray-300 mb-6"></p>
+            <div class="flex justify-end space-x-3">
+                <button id="modal-cancel-btn" onclick="hideMockModal()" class="px-4 py-2 bg-gray-200 dark-mode:bg-gray-600 text-gray-800 dark-mode:text-white rounded-lg hover:bg-gray-300 dark-mode:hover:bg-gray-700 transition-colors">Cancel</button>
+                <button id="modal-action-btn" onclick="hideMockModal()" class="px-4 py-2 text-white rounded-lg transition-colors"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Candidate Profile View Modal (For Feature 3: Candidate Profiles) -->
+    <div id="candidate-profile-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden p-4">
+        <div class="card bg-white dark-mode:bg-gray-800 p-8 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div id="candidate-profile-content">
+                <!-- Content injected by JS -->
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="closeCandidateProfileModal()" class="px-4 py-2 bg-gray-200 dark-mode:bg-gray-700 text-gray-800 dark-mode:text-white rounded-lg hover:bg-gray-300 dark-mode:hover:bg-gray-600 transition-colors">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Candidate Comparison Modal (For Feature 4: Comparison Tool) -->
+    <div id="comparison-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden p-4">
+        <div class="card bg-white dark-mode:bg-gray-800 p-8 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <h3 class="text-2xl font-bold mb-6 text-gray-900 dark-mode:text-white">⚖️ Candidate Comparison Tool</h3>
+            <div id="comparison-modal-body" class="overflow-x-auto">
+                <!-- Comparison table injected by JS -->
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="closeComparisonModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CRITICAL FIX: Load Tailwind CSS CDN as the last script.
+         This prevents it from blocking the initial page paint (LCP). -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+</body>
+</h

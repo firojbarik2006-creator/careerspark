@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerSpark - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css"> </head>
+<style>
+    /* --- Login Page Specific Styles --- */
+    /* Full-page centering */
+    
+    body {
+        background-color: #f0f2f5;
+        /* Light grey background */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        font-family: sans-serif;
+    }
+    /* The Main Login Box */
+    
+    .login-box {
+        background-color: #ffffff;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 380px;
+        text-align: center;
+    }
+    
+    .login-header h2 {
+        color: #333;
+        margin-bottom: 30px;
+        font-size: 1.8em;
+    }
+    /* Role Selector Buttons */
+    
+    .role-selector {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 25px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 5px;
+        background-color: #f9f9f9;
+    }
+    
+    .role-btn {
+        flex-grow: 1;
+        padding: 10px 0;
+        margin: 0 5px;
+        border: none;
+        background: transparent;
+        color: #555;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+        border-radius: 6px;
+    }
+    
+    .role-btn:hover {
+        color: #007bff;
+        /* Hover color */
+    }
+    
+    .role-btn.active {
+        background-color: #007bff;
+        /* Use your CareerSpark brand color */
+        color: white;
+        box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+    }
+    /* Form Styling */
+    
+    .login-form.hidden {
+        display: none;
+    }
+    
+    .input-group {
+        display: flex;
+        align-items: center;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        padding: 10px 15px;
+        background-color: #fff;
+    }
+    
+    .input-group i {
+        color: #aaa;
+        margin-right: 10px;
+    }
+    
+    .input-group input {
+        border: none;
+        flex-grow: 1;
+        padding: 5px 0;
+        outline: none;
+        font-size: 1em;
+    }
+    
+    .forgot-link {
+        display: block;
+        text-align: right;
+        margin-bottom: 25px;
+        color: #007bff;
+        text-decoration: none;
+        font-size: 0.9em;
+    }
+    
+    .submit-btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        background-color: #007bff;
+        /* Use your primary brand color */
+        color: white;
+        font-size: 1.1em;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    
+    .submit-btn:hover {
+        background-color: #0056b3;
+    }
+    
+    .signup-prompt {
+        margin-top: 25px;
+        font-size: 0.9em;
+        color: #666;
+    }
+    
+    .signup-prompt a {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    /* Add this to your style.css */
+    
+    .toggle-password {
+        margin-left: 10px;
+        color: #aaa;
+        cursor: pointer;
+        /* Ensure the icon doesn't stretch the flex container too much */
+        flex-shrink: 0;
+    }
+    /* Make sure the input itself is flexible */
+    
+    .input-group input {
+        flex-grow: 1;
+        /* This is already set in the previous answer, but important */
+    }
+</style>
+
+<body>
+
+    <div class="login-container">
+
+        <div class="login-box">
+
+            <div class="login-header">
+                <h2><i class="fa-solid fa-right-to-bracket"></i> Login to CareerSpark</h2>
+            </div>
+
+            <div class="role-selector">
+                <button class="role-btn active" onclick="selectRole('student')">
+                    <i class="fa-solid fa-user-graduate"></i> Student
+                </button>
+                <button class="role-btn" onclick="selectRole('company')">
+                    <i class="fa-solid fa-building"></i> Company 
+                </button>
+            </div>
+
+            <form id="student-form" class="login-form">
+
+                <div class="input-group">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" placeholder="Student Email" required>
+                </div>
+
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="studentPassword" placeholder="Password" required>
+                    <i class="fa-solid fa-eye-slash toggle-password" onclick="togglePasswordVisibility('studentPassword', this)"></i>
+                </div>
+
+
+                <a href="#" class="forgot-link">Forgot Password?</a>
+
+                <button type="submit" class="submit-btn">Login as Student</button>
+
+                <p class="signup-prompt">
+                    Don't have an account? <a href="/signup.html">Sign Up</a>
+                </p>
+            </form>
+
+
+            <form id="company-form" class="login-form hidden">
+
+                <div class="input-group">
+                    <i class="fa-solid fa-at"></i>
+                    <input type="email" placeholder="Company Email" required>
+                </div>
+
+                <div class="input-group">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" id="companyPassword" placeholder="Password" required>
+                    <i class="fa-solid fa-eye-slash toggle-password" onclick="togglePasswordVisibility('companyPassword', this)"></i>
+                </div>
+
+                <a href="#" class="forgot-link">Forgot Company Password?</a>
+
+                <button type="submit" class="submit-btn company-submit">Login as Company</button>
+
+                <p class="signup-prompt">
+                    New Company? <a href="/signup.html">Register Here</a>
+                </p>
+            </form>
+
+        </div>
+    </div>
+
+    <script>
+        function selectRole(role) {
+            const studentForm = document.getElementById('student-form');
+            const companyForm = document.getElementById('company-form');
+            const roleButtons = document.querySelectorAll('.role-btn');
+
+            // Hide all forms
+            studentForm.classList.add('hidden');
+            companyForm.classList.add('hidden');
+
+            // Remove active state from all buttons
+            roleButtons.forEach(btn => btn.classList.remove('active'));
+
+            // Show the selected form and set button as active
+            if (role === 'student') {
+                studentForm.classList.remove('hidden');
+                roleButtons[0].classList.add('active');
+            } else if (role === 'company') {
+                companyForm.classList.remove('hidden');
+                roleButtons[1].classList.add('active');
+            }
+        }
+
+        function togglePasswordVisibility(inputId, iconElement) {
+            const passwordInput = document.getElementById(inputId);
+
+            if (passwordInput.type === 'password') {
+                // Change type to 'text' to show the password
+                passwordInput.type = 'text';
+                // Change the icon to 'fa-eye' (open eye)
+                iconElement.classList.remove('fa-eye-slash');
+                iconElement.classList.add('fa-eye');
+            } else {
+                // Change type back to 'password' to hide it
+                passwordInput.type = 'password';
+                // Change the icon back to 'fa-eye-slash' (crossed-out eye)
+                iconElement.classList.remove('fa-eye');
+                iconElement.classList.add('fa-eye-slash');
+            }
+        }
+
+
+
+
+
+        // ---------------------------------------------------------------------
+        // 1. FIREBASE CONFIGURATION (CRITICAL: REPLACE PLACEHOLDERS BELOW)
+        // ---------------------------------------------------------------------
+        const FIREBASE_CONFIG_PLACEHOLDER = {
+            apiKey: "YOUR_API_KEY_HERE",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        const FIREBASE_CONFIG = FIREBASE_CONFIG_PLACEHOLDER;
+        const APP_ID = "local-platform-flow"; // Consistent App ID for pathing
+
+        // ---------------------------------------------------------------------
+        // 2. FIREBASE IMPORTS
+        // ---------------------------------------------------------------------
+        import {
+            initializeApp
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import {
+            getAuth,
+            createUserWithEmailAndPassword
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import {
+            getFirestore,
+            doc,
+            setDoc
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ---------------------------------------------------------------------
+        // 3. INITIALIZATION & HELPERS
+        // ---------------------------------------------------------------------
+        const app = initializeApp(FIREBASE_CONFIG);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const userRole = document.getElementById('userRole');
+        const studentFields = document.getElementById('studentFields');
+        const employerFields = document.getElementById('employerFields');
+        const signupForm = document.getElementById('signupForm');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+        const signupButton = document.getElementById('signupButton');
+        const feedbackMessage = document.getElementById('feedback-message');
+
+        const showFeedback = (message, type) => {
+            feedbackMessage.textContent = message;
+            feedbackMessage.className = ''; // Clear existing classes
+            feedbackMessage.classList.add(type);
+            feedbackMessage.style.display = 'block';
+        };
+
+        const setButtonLoading = (isLoading) => {
+            signupButton.disabled = isLoading;
+            signupButton.textContent = isLoading ? 'Creating Account...' : 'Sign Up';
+        };
+
+        // Define Firestore path logic (must match login.html)
+        const getProfilePath = (role, uid) => {
+            const collectionName = role === 'student' ? 'student_profiles' : 'employer_profiles';
+            return `artifacts/${APP_ID}/users/${uid}/${collectionName}/${uid}`;
+        };
+
+        const getDashboardUrl = (role) => {
+            return role === 'student' ? 'studentdashboard.html' : 'employer.html';
+        };
+
+        // ---------------------------------------------------------------------
+        // 4. CONDITIONAL FIELD DISPLAY LOGIC (User's Original Logic)
+        // ---------------------------------------------------------------------
+        userRole.addEventListener('change', (event) => {
+            const role = event.target.value;
+
+            studentFields.classList.add('hidden');
+            employerFields.classList.add('hidden');
+
+            studentFields.querySelectorAll('input').forEach(input => input.removeAttribute('required'));
+            employerFields.querySelectorAll('input').forEach(input => input.removeAttribute('required'));
+
+            if (role === 'student') {
+                studentFields.classList.remove('hidden');
+                document.getElementById('studentName').setAttribute('required', 'required');
+                document.getElementById('studentId').setAttribute('required', 'required');
+            } else if (role === 'employer') {
+                employerFields.classList.remove('hidden');
+                document.getElementById('companyName').setAttribute('required', 'required');
+                document.getElementById('contactName').setAttribute('required', 'required');
+            }
+        });
+
+        // ---------------------------------------------------------------------
+        // 5. SIGNUP SUBMISSION HANDLER (Integrated with Firebase)
+        // ---------------------------------------------------------------------
+        signupForm.addEventListener('submit', async(e) => {
+            e.preventDefault();
+            feedbackMessage.style.display = 'none';
+
+            const email = signupForm.email.value;
+            const password = passwordInput.value;
+            const role = userRole.value;
+
+            // Password Matching Validation (User's original logic, adapted)
+            if (password !== confirmPasswordInput.value) {
+                showFeedback('Error: Passwords do not match!', 'error');
+                confirmPasswordInput.focus();
+                return;
+            }
+
+            // Role Selection Validation
+            if (!role) {
+                showFeedback('Error: Please select a role.', 'error');
+                return;
+            }
+
+            setButtonLoading(true);
+
+            try {
+                // 5a. Create user in Firebase Authentication
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const uid = userCredential.user.uid;
+
+                let profileData = {
+                    userId: uid,
+                    email: email,
+                    role: role,
+                    createdAt: new Date().toISOString()
+                };
+
+                // 5b. Gather role-specific data for Firestore
+                if (role === 'student') {
+                    profileData.fullName = document.getElementById('studentName').value;
+                    // File upload is client-side only here, real world needs Storage, but we save the name
+                    profileData.idCardStatus = 'Pending Upload Verification';
+                } else if (role === 'employer') {
+                    profileData.companyName = document.getElementById('companyName').value;
+                    profileData.contactName = document.getElementById('contactName').value;
+                }
+
+                // 5c. Save profile document to Firestore
+                const profileRef = doc(db, getProfilePath(role, uid));
+                await setDoc(profileRef, profileData);
+
+                // 5d. Success and Redirection
+                showFeedback('Account created successfully! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = getDashboardUrl(role);
+                }, 1000);
+
+            } catch (error) {
+                // Log and display the error message
+                console.error("Signup error:", error);
+                showFeedback(`Authentication Error: ${error.message}`, 'error');
+            } finally {
+                setButtonLoading(false);
+            }
+        });
+
+        // Ensure initial state is correct by manually triggering change if a role is pre-selected (though yours starts empty)
+        userRole.dispatchEvent(new Event('change'));
+    </script>
+
+</body>
+
+</html>
